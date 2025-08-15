@@ -1,0 +1,8 @@
+# python virtual environment
+.venv/
+
+# byte-code files
+__pycache__/
+
+# configuration file (contains sensitive info)
+.env
