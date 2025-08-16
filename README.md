@@ -220,10 +220,6 @@ The collections include pre-configured requests for all endpoints with:
 - Environment variables
 - Authentication flows
 
-## 📚 Documentation
-
-For detailed API documentation and examples, refer to our [Wiki](https://github.com/yourusername/coglex/wiki).
-
 ## 🤝 Contributing
 
 1. Fork the repository
@@ -232,24 +228,6 @@ For detailed API documentation and examples, refer to our [Wiki](https://github.
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-### Development Guidelines
-
-- Follow PEP 8 style guide for Python code
-- Write comprehensive docstrings
-- Add unit tests for new features
-- Update documentation as needed
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## 👥 Authors
 
 - **IMAD EL AKHAL** - *Initial work* - [Website](https://ielakhal.com/)
-
-## 🙏 Acknowledgments
-
-- Flask framework and its community
-- MongoDB team for excellent documentation
-- Stripe for robust payment integration
-- All contributors who have helped shape this project
