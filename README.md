@@ -1,221 +1,255 @@
+<div align="center">
+
 # Coglex Intelligence
 
-**Version:** Genesis
-**Company:** IMAD EL AKHAL
-**Website:** [https://ielakhal.com/](https://ielakhal.com/)
+🧠 A powerful Flask-based backend collection of services for application development
 
+[![Python](https://img.shields.io/badge/python-3.x-blue.svg)](https://www.python.org/downloads/)
+[![Flask](https://img.shields.io/badge/flask-latest-green.svg)](https://flask.palletsprojects.com/)
+[![MongoDB](https://img.shields.io/badge/mongodb-latest-success.svg)](https://www.mongodb.com/)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-## Overview
+</div>
 
-Coglex Intelligence is a backend service built with Flask. It provides API endpoints for user authentication and data storage, utilizing MongoDB as its database. The application is designed to be modular, with services for authentication and storage clearly separated.
+## 🌟 Features
 
+- 🔐 **Robust Authentication System** - JWT-based user authentication with secure session management
+- 📁 **File Management** - Secure file upload, download, and deletion with metadata tracking
+- 💳 **Payment Integration** - Stripe payment processing for subscriptions and one-time payments
+- 🔄 **Dynamic Function Execution** - Remote execution of Python functions with parameter validation
+- 📦 **MongoDB Integration** - Comprehensive CRUD operations with PyMongo
+- 🛡️ **API Protection** - Multi-layered security with API keys and JWT authentication
 
-## Project Structure
-├── .pylintrc             # Pylint configuration file
-├── .venv/                # Python virtual environment
-├── coglex/               # Main application package
-│   ├── init .py       # Initializes Flask app, DB, blueprints, decorators
-│   ├── gateway/          # Entry point for developers to build new routes and applications
-│   ├── services/         # Core service modules
-│   │   ├── init .py
-│   │   ├── auth/         # Authentication service
-│   │   │   ├── init .py
-│   │   │   ├── routes.py # API routes for signup, signin, session, signout
-│   │   │   └── utils.py  # Helper functions for authentication logic
-│   │   ├── archive/      # Archive (file storage) service
-│   │   │   ├── init .py
-│   │   │   ├── routes.py # API routes for file upload, download, delete
-│   │   │   └── utils.py  # Helper functions for file operations
-│   │   ├── execution/    # Function execution service
-│   │   │   ├── init .py
-│   │   │   ├── routes.py # API routes for dynamic function execution
-│   │   │   └── utils.py  # Helper functions for function execution
-│   │   ├── payment/      # Payment processing service (Stripe integration)
-│   │   │   ├── init .py
-│   │   │   ├── routes.py # API routes for checkout, subscription, and webhooks
-│   │   │   └── utils.py  # Helper functions for Stripe API interactions
-│   │   └── storage/      # Storage (database) service
-│   │       ├── init .py
-│   │       │   ├── routes.py # API routes for CRUD operations on MongoDB
-│   │       └── utils.py  # Helper functions for MongoDB interactions
-│   ├── static/           # Static files (CSS, JS, images)
-│   │   └── uploads/      # Directory for file uploads
-│   └── templates/        # HTML templates (if any frontend part exists)
-├── config.py             # Global application configuration
-├── run.py                # Entry point to run the application
-└── utils.py              # General utility functions
+## 📖 Overview
 
+Coglex Intelligence is a sophisticated backend service built with Flask, designed to provide secure and scalable API endpoints for user authentication, data storage, and file management. The application follows a modular architecture, with clearly separated services for authentication, storage, file management, and payment processing.
 
-## Core Components
+## 🏗️ Project Structure
 
-*   **Flask Application (`coglex/__init__.py`)**: Initializes the Flask app, connects to MongoDB, and registers service blueprints. It also defines crucial decorators for API protection:
-    *   `@protected`: Ensures the presence and validity of an `X-API-Key` header, matching `SERVER_SECRET` from `config.py`.
-    *   `@authenticated`: Validates a JWT (JSON Web Token) provided in the `Authorization: Bearer <token>` header, ensuring the user is logged in and authorized.
-*   **Configuration (`config.py`)**: Manages all settings, including server parameters, database connection strings, application metadata, and secrets.
-*   **Entry Point (`run.py`)**: Starts the development or production server (Waitress).
-*   **Utilities (`utils.py`)**: Provides common helper functions for tasks like JWT encoding/decoding, hex string generation, and colored console output.
+```
+coglex/
+├── __init__.py        # Flask app initialization, DB connection, blueprints
+├── gateway/           # Entry point for new routes and applications
+├── services/          # Core service modules
+│   ├── auth/          # Authentication service
+│   │   ├── routes.py  # API routes for auth operations
+│   │   └── utils.py   # Auth helper functions
+│   ├── archive/       # File storage service
+│   │   ├── routes.py  # File operation endpoints
+│   │   └── utils.py   # File handling utilities
+│   ├── execution/     # Function execution service
+│   │   ├── routes.py  # Dynamic function endpoints
+│   │   └── utils.py   # Execution helpers
+│   ├── payment/       # Payment processing (Stripe)
+│   │   ├── routes.py  # Payment endpoints
+│   │   └── utils.py   # Stripe integration helpers
+│   └── storage/       # Database operations
+│       ├── routes.py  # CRUD operation endpoints
+│       └── utils.py   # MongoDB utilities
+├── static/           # Static assets and uploads
+└── templates/        # HTML templates
+```
 
+## 🚀 Quick Start
 
-## Services
+### Prerequisites
 
-### Authentication Service (`coglex/services/auth/`)
+- Python 3.x
+- MongoDB instance
+- Stripe account (for payment features)
+- SMTP server (for email notifications)
 
-Manages user authentication, including registration, login, session handling, and logout. It integrates with MongoDB for user data storage.
+### Installation
 
-*   **Endpoints**:
-    *   `POST /service/auth/v1/signup/<collection>/`: Registers a new user into the specified MongoDB collection.
-    *   `POST /service/auth/v1/signin/<collection>/`: Authenticates a user and issues a JWT for subsequent authenticated requests.
-    *   `GET /service/auth/v1/session/<collection>/`: Retrieves current session data for an authenticated user.
-    *   `GET /service/auth/v1/signout/<collection>/`: Invalidates the user's session and logs them out.
-*   **Mechanism**: Leverages JWT (JSON Web Tokens) for secure, stateless authentication. The `@authenticated` decorator ensures that only requests with a valid JWT can access protected resources.
+1. Clone the repository
+```bash
+git clone https://github.com/yourusername/coglex.git
+cd coglex
+```
 
+2. Create and activate virtual environment
+```bash
+python3 -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+```
 
-### Archive Service (`coglex/services/archive/`)
+3. Install dependencies
+```bash
+pip install -r requirements.txt
+```
 
-Provides robust file management capabilities, including secure upload, download, and deletion of files. It uses MongoDB to store file metadata and the local file system for the actual file content.
+4. Set up environment variables
+```bash
+cp .env.example .env
+# Edit .env with your configuration:
+# - SERVER_SECRET: Your API key for endpoint protection
+# - MONGODB_URI: Your MongoDB connection string
+# - SMTP_PASSWORD: Email server password
+# - STRIPE_SECRET_KEY: Stripe API secret key
+```
 
-*   **Endpoints**:
-    *   `POST /service/archive/v1/upload/<collection>/`: Uploads a file to a specified collection, storing its metadata in MongoDB.
-    *   `GET /service/archive/v1/download/<collection>/<reference>/`: Retrieves a file by its unique reference from a given collection.
-    *   `DELETE /service/archive/v1/delete/<collection>/<reference>/`: Deletes a file and its associated metadata.
-*   **Mechanism**: Files are stored on the server's file system, while their corresponding metadata (e.g., filename, size, path) is managed within MongoDB, ensuring data integrity and efficient retrieval.
+5. Run the application
+```bash
+python run.py
+```
 
-### Execution Service (`coglex/services/execution/`)
+## 🔒 Security Implementation
 
-Enables dynamic remote execution of Python functions. This service is designed for extensibility, allowing new functionalities to be exposed via API calls without direct code deployment.
+### API Protection
 
-*   **Endpoints**:
-    *   `POST /service/execution/v1/execute/<function_name>/`: Executes a pre-defined Python function by its name, accepting parameters via the request body.
-*   **Mechanism**: Functions are defined in `coglex/services/execution/utils.py` and are dynamically loaded and executed based on the `function_name` provided in the API request. This allows for a flexible and powerful way to extend backend logic.
+#### API Key Authentication (`@protected` decorator)
+- Requires `X-API-Key` header in requests
+- Validates against `SERVER_SECRET` in configuration
+- Provides first-level security for all service endpoints
 
-### Storage Service (`coglex/services/storage/`)
+#### JWT Authentication (`@authenticated` decorator)
+- Implements stateless authentication using JSON Web Tokens
+- Requires `Authorization: Bearer <token>` header
+- Validates user session and permissions
+- Ensures secure access to user-specific resources
 
-Facilitates comprehensive CRUD (Create, Read, Update, Delete) operations directly with MongoDB collections. It provides a standardized interface for interacting with your database.
+## 🛠️ Core Services
 
-*   **Endpoints**:
-    *   `GET /service/storage/v1/<collection>/`: Retrieves multiple documents from a specified collection, with optional query parameters for filtering.
-    *   `GET /service/storage/v1/<collection>/<key>/`: Fetches a single document by its unique identifier (`key`) from a given collection.
-    *   `POST /service/storage/v1/<collection>/`: Inserts a new document into the specified collection. A unique hexadecimal ID is automatically generated.
-    *   `PATCH /service/storage/v1/<collection>/<key>/`: Updates an existing document identified by its `key` in the specified collection.
-    *   `DELETE /service/storage/v1/<collection>/<key>/`: Removes a document by its `key` from the designated collection.
-*   **Mechanism**: Directly interfaces with MongoDB using PyMongo, abstracting database interactions behind RESTful API endpoints. It ensures data consistency and efficient management of document-based data.
+### Authentication Service
 
+```python
+# User Management Endpoints
+POST /service/auth/v1/signup/<collection>/  # Register new user
+    - Validates user data
+    - Hashes passwords securely
+    - Creates user document in MongoDB
 
-## Setup and Running
+POST /service/auth/v1/signin/<collection>/  # User login
+    - Validates credentials
+    - Issues JWT token
+    - Sets session data
 
-1.  **Prerequisites**:
-    *   Python 3.x
-    *   MongoDB instance accessible
-2.  **Installation**:
-    *   Clone the repository.
-    *   Create and activate a Python virtual environment:
-        ```bash
-        python3 -m venv .venv
-        source .venv/bin/activate
-        ```
-    *   Install dependencies (assuming a `requirements.txt` file, which is not explicitly listed but typical for Python projects):
-        ```bash
-        pip install Flask PyMongo PyJWT colorama waitress
-        ```
-3.  **Configuration**:
-    *   Update `config.py` with your specific settings, especially:
-        *   `SERVER_SECRET`
-        *   `SMTP_PASSWORD` (if email functionality is used)
-        *   `MONGODB_URI`
-4.  **Running the Application**:
-    *   For development:
-        ```bash
-        python run.py
-        ```
-        The server will typically run on `http://0.0.0.0:80` (or as configured in `config.py`). `SERVER_DEBUG` in `config.py` should be `True`.
-    *   For production (using Waitress):
-        Set `SERVER_DEBUG` to `False` in `config.py` and run:
-        ```bash
-        python run.py
-        ```
+GET /service/auth/v1/session/<collection>/  # Validate session
+    - Verifies JWT token
+    - Returns user session data
 
-## API Testing with Postman/Insomnia
+GET /service/auth/v1/signout/<collection>/  # User logout
+    - Invalidates current session
+    - Cleans up session data
+```
 
-A Postman collection named `postman.json` has been created to facilitate testing of all implemented API endpoints. This file can be imported directly into Postman or Insomnia.
+### Storage Service
 
-### Included Requests:
+```python
+# Database Operations
+GET    /service/storage/v1/<collection>/       # List documents
+    - Supports pagination
+    - Implements filtering
+    - Handles sorting
 
-*   **Auth Service**:
-    *   Signup
-    *   Signin
-    *   Session Retrieval
-    *   Signout
-*   **Storage Service**:
-    *   Get Multiple Documents
-    *   Get Single Document
-    *   Insert Document
-    *   Update Document
-    *   Delete Document
-*   **Archive Service**:
-    *   Upload File
-    *   Download File
-    *   Delete File
-*   **Execution Service**:
-    *   Execute Function (e.g., `example_function`)
-*   **Payment Service**:
-    *   Checkout (One-time Payment)
-    *   Create Subscription
-    *   Stripe Webhook
+GET    /service/storage/v1/<collection>/<key>/  # Get single document
+POST   /service/storage/v1/<collection>/       # Create document
+PATCH  /service/storage/v1/<collection>/<key>/  # Update document
+DELETE /service/storage/v1/<collection>/<key>/  # Delete document
+```
 
-### Payment Service (`coglex/services/payment/`)
+### Archive Service
 
-Integrates Stripe for handling one-time payments, subscriptions, and webhook events. This service enables secure and efficient processing of financial transactions.
+```python
+# File Management
+POST   /service/archive/v1/upload/<collection>/    # Upload file
+    - Handles multipart/form-data
+    - Validates file types
+    - Stores metadata in MongoDB
 
-*   **Endpoints**:
-    *   `POST /service/payment/v1/checkout/`: Initiates a one-time payment process via Stripe Checkout.
-    *   `POST /service/payment/v1/subscription/`: Creates a new subscription for a user through Stripe.
-    *   `POST /service/payment/v1/webhook/`: Receives and processes events from Stripe webhooks, such as successful payments or subscription changes.
-*   **Mechanism**: Utilizes the Stripe API for payment processing. The `checkout` and `subscription` endpoints interact with Stripe to create payment intents and manage subscriptions, while the `webhook` endpoint securely handles asynchronous notifications from Stripe.
+GET    /service/archive/v1/download/<collection>/  # Download file
+    - Streams file content
+    - Validates permissions
 
-## API Protection
+DELETE /service/archive/v1/delete/<collection>/   # Delete file
+    - Removes file and metadata
+```
 
-Coglex Intelligence employs a multi-layered security approach to protect its API endpoints:
+### Payment Service
 
-*   **API Key Protection (`@protected` decorator)**: Most service API endpoints are secured using a mandatory `X-API-Key` header. Requests must include this header with a value that matches the `SERVER_SECRET` configured in `config.py`. This provides a first line of defense against unauthorized access.
-*   **JWT Authentication (`@authenticated` decorator)**: Routes that require user-specific authorization are further protected by JWT. After a successful sign-in via the Authentication Service, a `Bearer` token is issued. This token must be included in the `Authorization` header for all subsequent requests to authenticated endpoints, ensuring that only legitimate and logged-in users can access their resources.
+```python
+# Stripe Integration
+POST /service/payment/v1/checkout/      # Process one-time payment
+    - Creates Stripe Checkout session
+    - Handles success/failure redirects
 
-## Gateway
+POST /service/payment/v1/subscription/  # Manage subscriptions
+    - Creates/updates subscriptions
+    - Handles billing cycles
 
-The `gateway` concept in Coglex Intelligence is designed as an extensible entry point for developers to build new routes and applications that leverage the core functionalities of the framework and its services. It acts as a central hub where custom logic and new API endpoints can be integrated seamlessly, utilizing the existing authentication, storage, archive, execution, and payment services. This modular approach promotes rapid development and allows for the creation of diverse applications on top of the Coglex platform.
+POST /service/payment/v1/webhook/       # Handle Stripe events
+    - Processes webhook notifications
+    - Updates payment status
+```
 
+## 🔌 Event System
 
-## Extending Functionality with Signals
+### Signal Handlers
 
-Coglex Intelligence utilizes Flask signals to allow developers to easily extend and customize its behavior without modifying core service logic. This is particularly useful for reacting to events like Stripe webhooks.
-
-### Intercepting Stripe Webhooks
-
-The `payment` service dispatches a `stripe_webhook_received` signal whenever a Stripe webhook event is successfully processed. Developers can connect to this signal to implement custom logic, such as updating order statuses, sending confirmation emails, or triggering other business processes.
-
-**Example Usage:**
-
-To intercept the `stripe_webhook_received` signal, you can add code similar to the following in your application (e.g., in a custom module or a `gateway` route):
+The application uses Flask signals for extensible event handling:
 
 ```python
 from coglex.utils import stripe_webhook_received
 
 @stripe_webhook_received.connect
-def handle_successful_payment(sender, **kwargs):
-    payload = sender # the payload object is passed as the sender
-    # process the payload data here
-    # e.g., update order status in database, send confirmation email, etc.
+def handle_payment(sender, **kwargs):
+    payload = sender
+    # Custom payment processing logic
+    # - Update order status
+    # - Send confirmation emails
+    # - Trigger fulfillment
 ```
 
-In this example:
-*   `stripe_webhook_received.connect` registers `handle_successful_payment` as a listener for the signal.
-*   The `sender` argument will be the `payload` object (or relevant Stripe event data) that triggered the signal.
-*   You can then process this data as needed for your application's specific requirements.
+## 🧪 Testing
 
-## Key Technologies
+### API Testing
 
-*   **Flask**: Micro web framework for Python.
-*   **MongoDB**: NoSQL document database.
-*   **PyMongo**: Python driver for MongoDB.
-*   **JWT (PyJWT)**: For generating and verifying JSON Web Tokens for authentication.
-*   **Waitress**: Production-quality WSGI server.
-*   **Colorama**: For producing colored terminal output.
+Import the provided collections for comprehensive API testing:
+
+```bash
+# Using Insomnia
+insomnia import insomnia.yaml
+
+# Using Postman
+postman import insomnia.har
+```
+
+The collections include pre-configured requests for all endpoints with:
+- Request headers setup
+- Body templates
+- Environment variables
+- Authentication flows
+
+## 📚 Documentation
+
+For detailed API documentation and examples, refer to our [Wiki](https://github.com/yourusername/coglex/wiki).
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+### Development Guidelines
+
+- Follow PEP 8 style guide for Python code
+- Write comprehensive docstrings
+- Add unit tests for new features
+- Update documentation as needed
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 👥 Authors
+
+- **IMAD EL AKHAL** - *Initial work* - [Website](https://ielakhal.com/)
+
+## 🙏 Acknowledgments
+
+- Flask framework and its community
+- MongoDB team for excellent documentation
+- Stripe for robust payment integration
+- All contributors who have helped shape this project
