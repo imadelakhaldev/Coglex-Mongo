@@ -5,6 +5,7 @@ operations utilizing mongodb client for user management and authentication
 """
 
 
+# pip install bcrypt
 # password hashing library
 import bcrypt
 

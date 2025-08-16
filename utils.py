@@ -16,6 +16,7 @@ import jwt
 # cross-platform terminal colored inputs
 from colorama import Fore, Style
 
+# pip install blinker
 # programmable signal handling
 from blinker import Namespace
 

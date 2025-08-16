@@ -11,6 +11,7 @@ from datetime import timedelta
 # operating system interactions
 import os
 
+# pip install python-dotenv
 # environment variable management
 from dotenv import load_dotenv
 

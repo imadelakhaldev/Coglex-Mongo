@@ -21,6 +21,7 @@ from flask import Flask, request, session, jsonify, abort
 # initialize mongodb client
 from pymongo import MongoClient
 
+# pip install stripe
 # online payment processing provider
 import stripe
 
