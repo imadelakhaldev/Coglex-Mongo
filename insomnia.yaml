@@ -35,19 +35,21 @@ collection:
                 meta:
                   id: req_a16f72c079c54de287cf478782f855d2
                   created: 1755184315092
-                  modified: 1755279220864
+                  modified: 1755779790218
                   isPrivate: false
                   description: ""
                   sortKey: -1755184313915
                 method: POST
                 body:
                   mimeType: application/json
-                  text: |
+                  text: |-
                     {
-                        "document": {
-                            "username": "testuser",
-                            "_password": "testpassword"
-                        }
+                    	"_key": "testuser",
+                    	"_password": "testpassword",
+                    	"document": {
+                    		"name": "Someone",
+                    		"location": "Planet Earth"
+                    	}
                     }
                 headers:
                   - name: Content-Type
@@ -74,7 +76,7 @@ collection:
                 meta:
                   id: req_12fbeccd9f874e89a0377a46a5fd87fb
                   created: 1755184315093
-                  modified: 1755279433901
+                  modified: 1755779798729
                   isPrivate: false
                   description: ""
                   sortKey: -1755184313914
@@ -83,10 +85,8 @@ collection:
                   mimeType: application/json
                   text: |-
                     {
-                        "document": {
-                            "username": "testuser",
-                            "_password": "testpassword"
-                        }
+                    	"_key": "testuser",
+                    	"_password": "testpassword"
                     }
                 headers:
                   - name: Content-Type
@@ -149,6 +149,46 @@ collection:
                   type: bearer
                   prefix: Bearer
                   token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb2xsZWN0aW9uIjoidXNlcnMiLCJxdWVyeSI6eyJ1c2VybmFtZSI6InRlc3R1c2VyIiwiX3Bhc3N3b3JkIjoidGVzdHBhc3N3b3JkIn0sImV4cCI6MTc1NTk3MDc3N30.0j3BIN2Kje1S0QYUb4-QBKHhcuhOD5xk-P0qzGFHYnQ
+                scripts:
+                  preRequest: ""
+                  afterResponse: ""
+                settings:
+                  renderRequestBody: true
+                  encodeUrl: true
+                  followRedirects: global
+                  cookies:
+                    send: true
+                    store: true
+                  rebuildPath: true
+              - url: http://localhost:5000/service/auth/v1/signin/users
+                name: REFRESH
+                meta:
+                  id: req_679253aa3aaf496e82703187fde0d881
+                  created: 1755779817670
+                  modified: 1755779864583
+                  isPrivate: false
+                  description: ""
+                  sortKey: -1755184313812
+                method: PATCH
+                body:
+                  mimeType: application/json
+                  text: |-
+                    {
+                    	"_key": "testuser",
+                    	"document": {
+                    		"name": "Guy",
+                    		"location": "Austria"
+                    	}
+                    }
+                headers:
+                  - name: Content-Type
+                    value: application/json
+                authentication:
+                  type: apikey
+                  disabled: false
+                  key: X-API-Key
+                  value: 123@Hello_World!
+                  addTo: header
                 scripts:
                   preRequest: ""
                   afterResponse: ""
