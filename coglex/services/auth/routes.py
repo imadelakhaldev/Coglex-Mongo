@@ -7,6 +7,7 @@ this module provides routing rules and endpoints for authentication operations i
 - user signin/authentication
 - session management
 - user signout
+- user update
 """
 
 
@@ -18,7 +19,7 @@ import config
 
 # importing blueprint utilities used in current routing context
 from coglex import protected
-from coglex.services.auth.utils import signup, signin
+from coglex.services.auth.utils import signup, signin, refresh
 
 
 # blueprint instance
@@ -38,7 +39,7 @@ def auth_signup(collection: str):
     """
     try:
         # signing up user
-        req = signup(collection, request.json.get("document"))
+        req = signup(collection, request.json.get("_key"), request.json.get("_password"), request.json.get("document"))
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
@@ -64,7 +65,8 @@ def auth_signin(collection: str):
     """
     try:
         # signing up user
-        req = signin(collection, request.json.get("document"))
+        req = signin(collection, request.json.get("_key"), request.json.get("_password"))
+
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
@@ -117,3 +119,29 @@ def auth_signout(collection: str):
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
+
+
+# user update route
+@auth.route("/service/auth/v1/refresh/<collection>/", methods=["PATCH"])
+@auth.route("/service/auth/v1/refresh/<collection>", methods=["PATCH"])
+@protected
+def auth_refresh(collection: str):
+    """
+    handle user data refresh/update requests for a specified collection
+    
+    args:
+        collection (str): actual name of the collection to update user data in
+    """
+    try:
+        # refreshing user data
+        req = refresh(collection, request.json.get("_key"), request.json.get("document"))
+    except Exception as ex:
+        # rethrow exception
+        return abort(500, description=str(ex))
+
+    # if no user found to update, return error
+    if not req:
+        return abort(404)
+
+    # returning results
+    return jsonify(req), 200
