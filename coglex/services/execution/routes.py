@@ -15,7 +15,7 @@ import config
 from coglex import protected
 
 # importing blueprint utilities used in current routing context
-from coglex.services.execution.utils import execute
+from coglex.services.execution.utils import _execute
 
 
 # blueprint instance
@@ -23,23 +23,22 @@ execution = Blueprint("execution", config.APP_IMPORT)
 
 
 # function execution route
-@execution.route("/service/execution/v1/execute/<function_name>/", methods=["POST"])
-@execution.route("/service/execution/v1/execute/<function_name>", methods=["POST"])
-@protected
-def execution_execute(function_name: str):
+@execution.route("/service/execution/v1/execute/<function>/", methods=["POST"])
+@execution.route("/service/execution/v1/execute/<function>", methods=["POST"])
+@protected()
+def execute(function: str):
     """
     handle function execution requests for a specified function name
 
     args:
-        function_name (str): the name of the function to execute
+        function (str): the name of the function to execute
     """
     # parsing request arguments
-    args = request.json.get("args", [])
-    kwargs = request.json.get("kwargs", {})
+    args, kwargs = request.json.get("args", []), request.json.get("kwargs", {})
 
     try:
         # executing function
-        result = execute(function_name, *args, **kwargs)
+        result = _execute(function, *args, **kwargs)
     except AttributeError as ex:
         # rethrow exception
         return abort(400, description=str(ex))

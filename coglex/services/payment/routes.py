@@ -10,9 +10,9 @@ from flask import Blueprint, request, jsonify, abort
 import config
 
 # importing blueprint utilities used in current routing context
-from utils import stripe_webhook_received
+from utils import stripe_webhook_signal
 from coglex import protected
-from coglex.services.payment.utils import create_checkout, create_subscription, verify_webhook
+from coglex.services.payment.utils import _checkout, _subscription, _verify
 
 
 # blueprint instance
@@ -21,8 +21,8 @@ payment = Blueprint("payment", __name__)
 
 @payment.route("/service/payment/v1/checkout/", methods=["POST"])
 @payment.route("/service/payment/v1/checkout", methods=["POST"])
-@protected
-def payment_create_checkout():
+@protected()
+def checkout():
     """
     create a stripe checkout session for one-time payments
     
@@ -48,7 +48,7 @@ def payment_create_checkout():
 
     try:
         # creating payment checkout
-        req = create_checkout(
+        req = _checkout(
             success_url=request.json.get("success_url"),
             cancel_url=request.json.get("cancel_url"),
             email=request.json.get("email"),
@@ -65,8 +65,8 @@ def payment_create_checkout():
 
 @payment.route("/service/payment/v1/subscription/", methods=["POST"])
 @payment.route("/service/payment/v1/subscription", methods=["POST"])
-@protected
-def payment_create_subscription():
+@protected()
+def subscription():
     """
     create a stripe subscription for recurring payments
     
@@ -91,7 +91,7 @@ def payment_create_subscription():
 
     try:
         # creating payment subscription
-        req = create_subscription(
+        req = _subscription(
             email=request.json.get("email"),
             items=request.json.get("items"),
             due=request.json.get("due"),
@@ -107,7 +107,7 @@ def payment_create_subscription():
 
 @payment.route("/service/payment/v1/webhook/", methods=["POST"])
 @payment.route("/service/payment/v1/webhook", methods=["POST"])
-def payment_stripe_webhook():
+def webhook():
     """
     handle incoming stripe webhook events
 
@@ -123,7 +123,7 @@ def payment_stripe_webhook():
         400: if webhook signature verification fails
     """
     try:
-        req = verify_webhook(request.headers.get("Stripe-Signature"), request.data, config.STRIPE_PUBLISHABLE_KEY)
+        req = _verify(request.headers.get("Stripe-Signature"), request.data, config.STRIPE_PUBLISHABLE_KEY)
     except Exception:
         return abort(400)
 
@@ -133,14 +133,14 @@ def payment_stripe_webhook():
     # handle one-time checkout completion
     if req.get("type") == "checkout.session.completed":
         if payload.get("mode") == "payment" and payload.get("payment_status") == "paid":
-            stripe_webhook_received.send(payload)
+            stripe_webhook_signal.send(payload)
 
     # handle paid invoice (subscription payment)
     elif req.get("type") == "invoice.paid":
-        stripe_webhook_received.send(payload)
+        stripe_webhook_signal.send(payload)
 
     # handle failed invoice (subscription not paid)
     elif req.get("type") == "invoice.payment_failed":
-        stripe_webhook_received.send(payload)
+        stripe_webhook_signal.send(payload)
 
     return jsonify(success=True), 200

@@ -12,10 +12,10 @@ import tempfile
 from werkzeug.utils import secure_filename
 
 # mongodb storage module
-from coglex.services.storage.utils import insert, find, delete
+from coglex.services.storage.utils import _insert, _find, _delete
 
 
-def upload(collection: str, file) -> str:
+def _upload(collection: str, file) -> str:
     """
     uploads a file and stores its metadata in the specified collection
 
@@ -35,16 +35,16 @@ def upload(collection: str, file) -> str:
         file.save(filepath)
 
         # store metadata in our database system and return the id
-        return insert(collection, {
+        return _insert(collection, [{
             "_filename": filename,
             "_filepath": filepath,  # store the temporary path
-        })
+        }])
     except Exception as ex:
         # rethrow exception
         raise ex
 
 
-def download(collection: str, reference: str) -> tuple or None:
+def _download(collection: str, reference: str) -> tuple or None:
     """
     retrieves a file path and filename based on its id from the specified collection
 
@@ -57,7 +57,7 @@ def download(collection: str, reference: str) -> tuple or None:
     """
     try:
         # retrieve file metadata
-        metadata = find(collection, {"_id": reference})
+        metadata = _find(collection, {"_id": reference})
 
         # check if metadata exists
         if not metadata:
@@ -78,7 +78,7 @@ def download(collection: str, reference: str) -> tuple or None:
         raise ex
 
 
-def f_delete(collection: str, reference: str) -> bool:
+def _fdelete(collection: str, reference: str) -> bool:
     """
     deletes a file and its metadata from the specified collection
 
@@ -91,7 +91,7 @@ def f_delete(collection: str, reference: str) -> bool:
     """
     try:
         # retrieve file metadata
-        metadata = find(collection, {"_id": reference})
+        metadata = _find(collection, {"_id": reference})
 
         # check if metadata exists
         if not metadata:
@@ -110,7 +110,7 @@ def f_delete(collection: str, reference: str) -> bool:
                 os.rmdir(temp)
 
         # delete metadata from database system
-        return delete(collection, {"_id": reference})
+        return _delete(collection, {"_id": reference})
     except Exception as ex:
         # rethrow exception
         raise ex

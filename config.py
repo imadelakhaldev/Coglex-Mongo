@@ -25,15 +25,15 @@ APP_IMPORT = __name__
 APP_FOLDER = "coglex"
 APP_STATIC = os.path.join(APP_FOLDER, "static")
 APP_TEMPLATES = os.path.join(APP_FOLDER, "templates")
-APP_UPLOAD = os.path.join(APP_FOLDER, "static", "uploads")
-APP_NAME = "Coglex Intelligence"
+APP_UPLOAD = os.path.join(APP_FOLDER, "static", "documents")
+APP_NAME = "Tranzlate"
 APP_VERSION = "Genesis"
-APP_TITLE = "Artificial Intelligence Completion"
+APP_TITLE = "AI-Powered Document Translation"
 APP_COMPANY = "DIGISOFTWORKS LTD"
-APP_WEBSITE = "https://digisoftworks.com/"
+APP_WEBSITE = "https://tranzlate.ma/"
 
 # server configurations and session settings
-BASE_URL = "https://coglex.com/"
+BASE_URL = "http://127.0.0.1:5000"
 
 # file uploads and storage settings
 MAX_CONTENT_LENGTH = 16 * 1024 * 1024
@@ -57,6 +57,7 @@ SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD")
 MONGODB_URI = os.environ.get("MONGODB_URI")
 MONGODB_DATABASE = APP_FOLDER
 MONGODB_HEX_LENGTH = 12
+MONGODB_AUTH_COLLECTION = "USERS"
 
 # stripe payment api keys
 STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY")

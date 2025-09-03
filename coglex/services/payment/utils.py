@@ -10,7 +10,7 @@ while maintaining proper error handling
 import stripe
 
 
-def create_checkout(success_url: str, cancel_url: str, email: str, linedata: [dict], metadata: dict = None):
+def _checkout(success_url: str, cancel_url: str, email: str, linedata: [dict], metadata: dict = None):
     """
     create a stripe checkout session for one-time payments
 
@@ -27,7 +27,7 @@ def create_checkout(success_url: str, cancel_url: str, email: str, linedata: [di
     return stripe.checkout.Session.create(mode="payment", success_url=success_url, cancel_url=cancel_url, customer_email=email, line_items=linedata, metadata=metadata or {})
 
 
-def create_subscription(email: str, items: [dict], due: int = 7, metadata: dict = None):
+def _subscription(email: str, items: [dict], due: int = 7, metadata: dict = None):
     """
     create a new customer and start a subscription
     stripe will email invoices automatically
@@ -61,7 +61,7 @@ def create_subscription(email: str, items: [dict], due: int = 7, metadata: dict 
         raise ex
 
 
-def verify_webhook(signature: str, payload: bytes, secret: str):
+def _verify(signature: str, payload: bytes, secret: str):
     """
     verify the signature of a stripe webhook event
 

@@ -13,7 +13,7 @@ from utils import hexgen
 from coglex import storage
 
 
-def find(collection: str, query: dict = {}, keys: dict = {}) -> dict or list[dict] or None:
+def _find(collection: str, query: dict = {}, keys: dict = {}) -> dict or list[dict] or None:
     """
     find records in a mongodb collection that match a specific query
 
@@ -41,29 +41,33 @@ def find(collection: str, query: dict = {}, keys: dict = {}) -> dict or list[dic
         raise ex
 
 
-def insert(collection: str, document: dict) -> str:
+def _insert(collection: str, documents: list[dict]) -> list[str]:
     """
-    insert a single record into a specified mongodb collection
+    insert multiple records into a specified mongodb collection
 
     args:
         collection (str): name of the mongodb collection to insert into
-        document (dict): record to be inserted into the collection
+        documents (list[dict]): list of records to be inserted into the collection
 
     returns:
-        str: inserted id of the record if successful, none if unsuccessful
+        list[str]: list of inserted ids of the records if successful
     """
     try:
-        # insert document and get inserted id
-        # we are generating a random hex id for the document to be inserted
-        # this is to avoid duplicate ids in the collection, and to avoid mongodb
-        # from generating its own id, in case of user not passing an id, "_id" key is now reserved to us
-        return str(storage.get_collection(collection).insert_one({**document, **{"_id": hexgen()}}).inserted_id)
+        # generate _id for each document and prepare for insertion
+        # insert documents with generated IDs
+        execution = storage.get_collection(collection).insert_many([{**document, **{"_id": hexgen()}} for document in documents])
+
+        # convert ObjectIds to strings
+        references = [str(_id) for _id in execution.inserted_ids]
+
+        # return single id if one document, list if multiple
+        return references[0] if len(references) == 1 else references
     except Exception as ex:
         # rethrow exception
         raise ex
 
 
-def patch(collection: str, document: dict, query: dict = {}) -> int or None:
+def _patch(collection: str, document: dict, query: dict = {}) -> int or None:
     """
     update records in a mongodb collection that matches a specific query
 
@@ -90,7 +94,7 @@ def patch(collection: str, document: dict, query: dict = {}) -> int or None:
         raise ex
 
 
-def delete(collection: str, query: dict = {}) -> int or None:
+def _delete(collection: str, query: dict = {}) -> int or None:
     """
     delete records from a mongodb collection that matches a specific query
 

@@ -5,18 +5,17 @@ operations utilizing mongodb client for user management and authentication
 """
 
 
-# pip install bcrypt
-# password hashing library
-import bcrypt
+# importing flask's built-in modules
+from flask import session
+
+# local helper imports
+from utils import pcheck, phash
 
 # mongodb storage module
-from coglex.services.storage.utils import insert, find, patch
-
-# global generic utilities
-from utils import jwtenc
+from coglex.services.storage.utils import _insert, _find, _patch
 
 
-def signup(collection: str, _key: str, _password: str, document: dict) -> str | None:
+def _signup(collection: str, _key: str, _password: str, document: dict = {}) -> str | None:
     """
     creates a new user document in the specified collection
 
@@ -26,31 +25,31 @@ def signup(collection: str, _key: str, _password: str, document: dict) -> str | 
         collection (str): the name of the collection to store the user document
         _key (str): unique identifier for the user (e.g., email or username)
         _password (str): user's password for authentication 
-        document (dict): additional user information to store
+        document (dict) (optional): additional user information to store
 
     returns:
         str: the unique identifier (_id) of the newly created user document, None if user creation fails or required fields are missing
     """
     try:
+        # check if user already exists
+        if _find(collection, {"_key": _key}):
+            return None
+
         # remove duplicated fields in document
         document.pop("_key", None)
         document.pop("_password", None)
 
-        # check if user already exists
-        if find(collection, {"_key": _key}):
-            return None
-
         # hash the password before storing
-        _password = bcrypt.hashpw(_password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+        _password = phash(_password)
 
         # inject _key and _password to document and create new user
-        return insert(collection, {"_key": _key, "_password": _password, **document})
+        return _insert(collection, [{"_key": _key, "_password": _password, **document}])
     except Exception as ex:
         # rethrow exception
         raise ex
 
 
-def signin(collection: str, _key: str, _password: str) -> tuple or None:
+def _signin(collection: str, _key: str, _password: str, query: dict = {}) -> dict or None:
     """
     authenticates a user by validating their credentials
 
@@ -58,13 +57,14 @@ def signin(collection: str, _key: str, _password: str) -> tuple or None:
         collection (str): name of the collection to authenticate against
         _key (str): unique identifier for the user (e.g., email or username)
         _password (str): user's password for authentication
+        query (dict) (optional): additional query parameters to filter user documents for example active=True to only allow signin for active users
 
     returns:
-        tuple: a tuple containing (jwt_token, user_document) upon successful authentication, where jwt_token is a string and user_document is a dictionary containing user information, returns None if authentication fails
+        dict | None: user document dictionary containing user information upon successful authentication, None if authentication fails
     """
     try:
         # find user without password in query
-        authentication = find(collection, {"_key": _key})
+        authentication = _find(collection, {"_key": _key, **query})
 
         # if no user found, return none
         if not authentication:
@@ -76,18 +76,23 @@ def signin(collection: str, _key: str, _password: str) -> tuple or None:
             return None
 
         # verify password hash matches
-        if not bcrypt.checkpw(_password.encode("utf-8"), authentication.get("_password").encode("utf-8")):
+        if not pcheck(_password, authentication.get("_password")):
             return None
 
-        # generate jwt token for user authentication
-        # we are passing the collection and query as claims in the token
-        return jwtenc({"collection": collection, "_key": _key, "_password": _password}), authentication
+        # saving user given password for later user checking
+        authentication["_password"] = _password
+
+        # updating flask session for usage across framework
+        session.update({collection: authentication})
+
+        # returning the authentication document (user)
+        return authentication
     except Exception as ex:
         # rethrow exception
         raise ex
 
 
-def refresh(collection: str, _key: str, document: dict) -> int | None:
+def _refresh(collection: str, _key: str, document: dict) -> int | None:
     """
     updates user information in the specified collection
 
@@ -100,22 +105,15 @@ def refresh(collection: str, _key: str, document: dict) -> int | None:
         int | None: number of documents updated if successful, none otherwise
     """
     try:
-        # handle password updates separately if included
-        if "_password" in document:
-            document["_password"] = bcrypt.hashpw(document.get("_password").encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
-
         # find user first to verify existence
-        if not find(collection, {"_key": _key}):
+        if not _find(collection, {"_key": _key}):
             return None
 
+        # handle password updates separately if included
+        if "_password" in document:
+            document["_password"] = phash(document.get("_password"))
+
         # update user document
-        return patch(collection, document, {"_key": _key})
+        return _patch(collection, document, {"_key": _key})
     except Exception as ex:
         raise ex
-
-
-# email verification can be added as an extended custom authentication utility in gateway using smtp and token generation
-# signup fraud can be added as an extended custom authentication utility in gateway using fingerprintjs
-# password reset can be added as an extended custom authentication utility in gateway using smtp and token generation
-# social login can be later added as an extended custom authentication utility in gateway using oauth2
-# mentioned utilities can be later decided to be included in core system framework

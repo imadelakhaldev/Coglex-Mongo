@@ -17,7 +17,7 @@ import config
 from coglex import protected
 
 # importing blueprint utilities used in current routing context
-from coglex.services.archive.utils import upload, download, f_delete
+from coglex.services.archive.utils import _upload, _download, _fdelete
 
 
 # blueprint instance
@@ -27,11 +27,11 @@ archive = Blueprint("archive", config.APP_IMPORT)
 # file upload route
 @archive.route("/service/archive/v1/upload/<collection>/", methods=["POST"])
 @archive.route("/service/archive/v1/upload/<collection>", methods=["POST"])
-@protected
-def archive_upload(collection: str):
+@protected()
+def upload(collection: str):
     """
     handle file upload requests for a specified collection
-    
+
     args:
         collection (str): actual name of the collection to store the file in
     """
@@ -48,7 +48,7 @@ def archive_upload(collection: str):
 
     try:
         # upload the file
-        req = upload(collection, file)
+        req = _upload(collection, file)
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
@@ -60,8 +60,8 @@ def archive_upload(collection: str):
 # file download route
 @archive.route("/service/archive/v1/download/<collection>/<reference>/", methods=["GET"])
 @archive.route("/service/archive/v1/download/<collection>/<reference>", methods=["GET"])
-@protected
-def archive_download(collection: str, reference: str):
+@protected()
+def download(collection: str, reference: str):
     """
     handle file download requests for a specified collection and reference
     
@@ -71,7 +71,7 @@ def archive_download(collection: str, reference: str):
     """
     try:
         # downloading file
-        filepath, filename = download(collection, reference)
+        filepath, filename = _download(collection, reference)
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
@@ -87,8 +87,8 @@ def archive_download(collection: str, reference: str):
 # file deletion route
 @archive.route("/service/archive/v1/delete/<collection>/<reference>/", methods=["DELETE"])
 @archive.route("/service/archive/v1/delete/<collection>/<reference>", methods=["DELETE"])
-@protected
-def archive_delete(collection: str, reference: str):
+@protected()
+def fdelete(collection: str, reference: str):
     """
     handle file deletion requests for a specified collection and reference
     
@@ -98,7 +98,7 @@ def archive_delete(collection: str, reference: str):
     """
     try:
         # deleting file
-        req = f_delete(collection, reference)
+        req = _fdelete(collection, reference)
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))

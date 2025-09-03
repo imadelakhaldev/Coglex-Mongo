@@ -6,11 +6,6 @@ this module provides common utility functions and helper methods that are used a
 
 # standard library imports
 import random
-from datetime import datetime
-
-# pip install PyJWT
-# jwt for token generation
-import jwt
 
 # pip install colorama
 # cross-platform terminal colored inputs
@@ -20,8 +15,12 @@ from colorama import Fore, Style
 # programmable signal handling
 from blinker import Namespace
 
+# pip install bcrypt
+# password hashing library
+import bcrypt
+
 # stripe webhook signal
-stripe_webhook_received = Namespace().signal("stripe-webhook-received")
+stripe_webhook_signal = Namespace().signal("stripe_webhook")
 
 # local imports
 import config
@@ -39,6 +38,25 @@ def sprint(color: str, content: str) -> None:
     print(f"{getattr(Fore, color.upper(), Fore.RESET)}{content}{Style.RESET_ALL}")
 
 
+# formats a string by replacing placeholders with values from a dictionary
+def fstring(template: str, variables: dict) -> str:
+    """
+    format a string by replacing placeholders with values from a dictionary
+    
+    args:
+        template (str): string template with placeholders in format "{ key }"
+        variables (dict): dictionary containing key-value pairs for replacement
+        
+    returns:
+        str: formatted string with replaced placeholders
+    """
+    for key, value in variables.items():
+        placeholder = "{ " + key + " }"
+        template = template.replace(placeholder, str(value))
+
+    return template
+
+
 # generate a random hexadecimal string of specified length
 def hexgen(length: int = config.MONGODB_HEX_LENGTH) -> str:
     """
@@ -53,38 +71,28 @@ def hexgen(length: int = config.MONGODB_HEX_LENGTH) -> str:
     return "".join([hex(x)[2:] for x in random.randbytes(length // 2)])
 
 
-# encode jwt token for user authentication
-def jwtenc(document: dict, expiration: datetime = datetime.utcnow() + config.SERVER_SESSION_LIFETIME, key: str = config.SERVER_SECRET) -> str:
+def phash(password: str) -> str:
     """
-    generate a jwt (json web token) for user authentication
+    hash a password using bcrypt with salt
 
     args:
-        document (dict): dictionary containing user data to be encoded in the token
-        expiration (datetime): token expiration timestamp, defaults to current utc time plus global value
-        key (str): secret key used for token encoding, defaults to global value
+        password (str): the plain text password to hash
 
     returns:
-        str: generated jwt token string encoded with the server secret
+        str: the hashed password as a utf-8 string
     """
-    # generate and return jwt token
-    return jwt.encode({**document, **{"exp": expiration}}, key, algorithm="HS256")
+    return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
 
-# decode jwt token for user authentication
-def jwtdec(token: str, key: str = config.SERVER_SECRET) -> dict:
+def pcheck(password: str, hashed: str) -> bool:
     """
-    decode a jwt (json web token) for user authentication
+    check if a password matches a hashed password using bcrypt
 
     args:
-        token (str): jwt token string to decode
-        key (str): secret key used for token decoding, defaults to global value
+        password (str): the plain text password to check
+        hashed (str): the hashed password to compare against
 
     returns:
-        dict: decoded token payload containing user data
+        bool: true if the password matches the hashed password, false otherwise
     """
-    try:
-        # decode and return jwt token
-        return jwt.decode(token, key, algorithms=["HS256"])
-    except Exception:
-        # return none if token is invalid
-        return None
+    return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))

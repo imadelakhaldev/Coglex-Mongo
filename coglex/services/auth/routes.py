@@ -19,7 +19,7 @@ import config
 
 # importing blueprint utilities used in current routing context
 from coglex import protected
-from coglex.services.auth.utils import signup, signin, refresh
+from coglex.services.auth.utils import _signup, _signin, _refresh
 
 
 # blueprint instance
@@ -29,8 +29,8 @@ auth = Blueprint("auth", config.APP_IMPORT)
 # user creation route
 @auth.route("/service/auth/v1/signup/<collection>/", methods=["POST"])
 @auth.route("/service/auth/v1/signup/<collection>", methods=["POST"])
-@protected
-def auth_signup(collection: str):
+@protected()
+def signup(collection: str):
     """
     handle user signup requests for a specified collection
     
@@ -39,7 +39,7 @@ def auth_signup(collection: str):
     """
     try:
         # signing up user
-        req = signup(collection, request.json.get("_key"), request.json.get("_password"), request.json.get("document"))
+        req = _signup(collection, request.json.get("_key"), request.json.get("_password"), request.json.get("document"))
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
@@ -55,8 +55,8 @@ def auth_signup(collection: str):
 # user verification route
 @auth.route("/service/auth/v1/signin/<collection>/", methods=["POST"])
 @auth.route("/service/auth/v1/signin/<collection>", methods=["POST"])
-@protected
-def auth_signin(collection: str):
+@protected()
+def signin(collection: str):
     """
     handle user signin/authentication requests for a specified collection
     
@@ -65,8 +65,7 @@ def auth_signin(collection: str):
     """
     try:
         # signing up user
-        req = signin(collection, request.json.get("_key"), request.json.get("_password"))
-
+        req = _signin(collection, request.json.get("_key"), request.json.get("_password"), request.json.get("query"))
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
@@ -75,18 +74,15 @@ def auth_signin(collection: str):
     if not req:
         return abort(404)
 
-    # updating session
-    session.update({collection: req[1]})
-
     # returning results
-    return jsonify(req[0]), 200
+    return jsonify(req), 200
 
 
 # session retrival route
 @auth.route("/service/auth/v1/session/<collection>/", methods=["GET"])
 @auth.route("/service/auth/v1/session/<collection>", methods=["GET"])
-@protected
-def auth_session(collection: str):
+@protected()
+def _session(collection: str):
     """
     retrieve the current session data for a specified collection
     
@@ -103,7 +99,7 @@ def auth_session(collection: str):
 # session deletion route
 @auth.route("/service/auth/v1/signout/<collection>/", methods=["GET"])
 @auth.route("/service/auth/v1/signout/<collection>", methods=["GET"])
-def auth_signout(collection: str):
+def signout(collection: str):
     """
     handle user signout / session termination requests for a specified collection
     
@@ -124,8 +120,8 @@ def auth_signout(collection: str):
 # user update route
 @auth.route("/service/auth/v1/refresh/<collection>/", methods=["PATCH"])
 @auth.route("/service/auth/v1/refresh/<collection>", methods=["PATCH"])
-@protected
-def auth_refresh(collection: str):
+@protected()
+def refresh(collection: str):
     """
     handle user data refresh/update requests for a specified collection
     
@@ -134,7 +130,7 @@ def auth_refresh(collection: str):
     """
     try:
         # refreshing user data
-        req = refresh(collection, request.json.get("_key"), request.json.get("document"))
+        req = _refresh(collection, request.json.get("_key"), request.json.get("document"))
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))

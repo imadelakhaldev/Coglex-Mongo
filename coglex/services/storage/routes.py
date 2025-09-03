@@ -23,7 +23,7 @@ import config
 from coglex import protected
 
 # importing blueprint utilities used in current routing context
-from coglex.services.storage.utils import find, insert, patch, delete
+from coglex.services.storage.utils import _find, _insert, _patch, _delete
 
 
 # blueprint instance
@@ -33,8 +33,8 @@ storage = Blueprint("storage", config.APP_IMPORT)
 # accepting get requests for multiple document queries
 @storage.route("/service/storage/v1/<collection>/", methods=["GET"])
 @storage.route("/service/storage/v1/<collection>", methods=["GET"])
-@protected
-def storage_find_many(collection: str):
+@protected()
+def find_many(collection: str):
     """
     retrieve multiple documents from the specified collection based on query parameters
 
@@ -43,12 +43,11 @@ def storage_find_many(collection: str):
     """
     # convert keys string to dictionary if present
     # safely parse keys from request args using json.loads if present
-    query = request.args.get("query")
-    keys = request.args.get("keys")
+    query, keys = request.args.get("query"), request.args.get("keys")
 
     try:
         # find documents matching query
-        req = find(collection, json.loads(query) if query else None, json.loads(keys) if keys else None)
+        req = _find(collection, json.loads(query) if query else None, json.loads(keys) if keys else None)
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
@@ -64,8 +63,8 @@ def storage_find_many(collection: str):
 # accepting get requests for single specific document query
 @storage.route("/service/storage/v1/<collection>/<key>/", methods=["GET"])
 @storage.route("/service/storage/v1/<collection>/<key>", methods=["GET"])
-@protected
-def storage_find_one(collection: str, key: str):
+@protected()
+def find_one(collection: str, key: str):
     """
     retrieve a single document from the specified collection based on its key
 
@@ -79,7 +78,7 @@ def storage_find_one(collection: str, key: str):
 
     try:
         # find document matching query
-        req = find(collection, {"_id": key}, json.loads(keys) if keys else None)
+        req = _find(collection, {"_id": key}, json.loads(keys) if keys else None)
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
@@ -95,8 +94,8 @@ def storage_find_one(collection: str, key: str):
 # accepting post requests for single insertions
 @storage.route("/service/storage/v1/<collection>/", methods=["POST"])
 @storage.route("/service/storage/v1/<collection>", methods=["POST"])
-@protected
-def storage_insert(collection: str):
+@protected()
+def insert_one(collection: str):
     """
     insert a new document into the specified collection
 
@@ -105,7 +104,29 @@ def storage_insert(collection: str):
     """
     try:
         # insert document
-        req = insert(collection, request.json.get("document"))
+        req = _insert(collection, [request.json.get("document")])
+    except Exception as ex:
+        # rethrow exception
+        return abort(500, description=str(ex))
+
+    # if record inserted, return success
+    return jsonify(req), 200
+
+
+# accepting post requests for multiple document insertions
+@storage.route("/service/storage/v1/<collection>/", methods=["POST"])
+@storage.route("/service/storage/v1/<collection>", methods=["POST"])
+@protected()
+def insert_many(collection: str):
+    """
+    insert multiple documents into the specified collection
+
+    args:
+        collection (str): name of the collection to insert the documents into
+    """
+    try:
+        # insert documents
+        req = _insert(collection, request.json.get("documents"))
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
@@ -117,8 +138,8 @@ def storage_insert(collection: str):
 # accepting patch requests for single document updates
 @storage.route("/service/storage/v1/<collection>/<key>/", methods=["PATCH"])
 @storage.route("/service/storage/v1/<collection>/<key>", methods=["PATCH"])
-@protected
-def storage_patch(collection: str, key: str):
+@protected()
+def patch_one(collection: str, key: str):
     """
     update a single document in the specified collection based on its key
 
@@ -128,7 +149,37 @@ def storage_patch(collection: str, key: str):
     """
     try:
         # patch document
-        req = patch(collection, request.json.get("document"), {"_id": key})
+        req = _patch(collection, request.json.get("document"), {"_id": key})
+    except Exception as ex:
+        # rethrow exception
+        return abort(500, description=str(ex))
+
+    # if no records found, return error
+    if not req:
+        return abort(404)
+
+    # if record patched, return success
+    return jsonify(req), 200
+
+
+# accepting patch requests for multiple document updates
+@storage.route("/service/storage/v1/<collection>/", methods=["PATCH"])
+@storage.route("/service/storage/v1/<collection>", methods=["PATCH"])
+@protected()
+def patch_many(collection: str):
+    """
+    update multiple documents in the specified collection based on query parameters
+
+    args:
+        collection (str): actual name of the collection to query
+    """
+    # convert keys string to dictionary if present
+    # safely parse keys from request args using json.loads if present
+    query = request.args.get("query")
+
+    try:
+        # patch document
+        req = _patch(collection, request.json.get("document"), json.loads(query) if query else None)
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
@@ -144,8 +195,8 @@ def storage_patch(collection: str, key: str):
 # accepting delete requests for single document suppressions
 @storage.route("/service/storage/v1/<collection>/<key>/", methods=["DELETE"])
 @storage.route("/service/storage/v1/<collection>/<key>", methods=["DELETE"])
-@protected
-def storage_delete(collection: str, key: str):
+@protected()
+def delete_one(collection: str, key: str):
     """
     delete a single document from the specified collection based on its key
 
@@ -155,7 +206,37 @@ def storage_delete(collection: str, key: str):
     """
     try:
         # delete document
-        req = delete(collection, {"_id": key})
+        req = _delete(collection, {"_id": key})
+    except Exception as ex:
+        # rethrow exception
+        return abort(500, description=str(ex))
+
+    # if no records found, return error
+    if not req:
+        return abort(404)
+
+    # if record deleted, return success
+    return jsonify(req), 200
+
+
+# accepting delete requests for multiple document suppressions
+@storage.route("/service/storage/v1/<collection>/", methods=["DELETE"])
+@storage.route("/service/storage/v1/<collection>", methods=["DELETE"])
+@protected()
+def delete_many(collection: str):
+    """
+    delete multiple documents from the specified collection based on query parameters
+
+    args:
+        collection (str): actual name of the collection to query
+    """
+    # convert keys string to dictionary if present
+    # safely parse keys from request args using json.loads if present
+    query = request.args.get("query")
+
+    try:
+        # delete document
+        req = _delete(collection, json.loads(query) if query else None)
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
