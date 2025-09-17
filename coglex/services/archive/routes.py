@@ -21,12 +21,12 @@ from coglex.services.archive.utils import _upload, _download, _fdelete
 
 
 # blueprint instance
-archive = Blueprint("archive", config.APP_IMPORT)
+_archive = Blueprint("_archive", config.APP_IMPORT)
 
 
 # file upload route
-@archive.route("/service/archive/v1/upload/<collection>/", methods=["POST"])
-@archive.route("/service/archive/v1/upload/<collection>", methods=["POST"])
+@_archive.route("/service/archive/v1/upload/<collection>/", methods=["POST"])
+@_archive.route("/service/archive/v1/upload/<collection>", methods=["POST"])
 @protected()
 def upload(collection: str):
     """
@@ -58,8 +58,8 @@ def upload(collection: str):
 
 
 # file download route
-@archive.route("/service/archive/v1/download/<collection>/<reference>/", methods=["GET"])
-@archive.route("/service/archive/v1/download/<collection>/<reference>", methods=["GET"])
+@_archive.route("/service/archive/v1/download/<collection>/<reference>/", methods=["GET"])
+@_archive.route("/service/archive/v1/download/<collection>/<reference>", methods=["GET"])
 @protected()
 def download(collection: str, reference: str):
     """
@@ -85,8 +85,8 @@ def download(collection: str, reference: str):
 
 
 # file deletion route
-@archive.route("/service/archive/v1/delete/<collection>/<reference>/", methods=["DELETE"])
-@archive.route("/service/archive/v1/delete/<collection>/<reference>", methods=["DELETE"])
+@_archive.route("/service/archive/v1/delete/<collection>/<reference>/", methods=["DELETE"])
+@_archive.route("/service/archive/v1/delete/<collection>/<reference>", methods=["DELETE"])
 @protected()
 def fdelete(collection: str, reference: str):
     """

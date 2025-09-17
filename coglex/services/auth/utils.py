@@ -92,6 +92,28 @@ def _signin(collection: str, _key: str, _password: str, query: dict = {}) -> dic
         raise ex
 
 
+def _signout(collection: str) -> bool:
+    """
+    signs out a user by removing their session data
+
+    args:
+        collection (str): the name of the collection to remove session data from
+
+    returns:
+        bool: true if signout is successful, exception otherwise
+    """
+    try:
+        # signing out user, remove user's session
+        if collection in session:
+            session.pop(collection, None)
+
+        # success return
+        return True
+    except Exception as ex:
+        # rethrow exception
+        raise ex
+
+
 def _refresh(collection: str, _key: str, document: dict) -> int | None:
     """
     updates user information in the specified collection
@@ -114,6 +136,6 @@ def _refresh(collection: str, _key: str, document: dict) -> int | None:
             document["_password"] = phash(document.get("_password"))
 
         # update user document
-        return _patch(collection, document, {"_key": _key})
+        return _patch(collection, {"$set": document}, {"_key": _key})
     except Exception as ex:
         raise ex

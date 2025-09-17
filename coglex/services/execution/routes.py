@@ -19,12 +19,12 @@ from coglex.services.execution.utils import _execute
 
 
 # blueprint instance
-execution = Blueprint("execution", config.APP_IMPORT)
+_execution = Blueprint("_execution", config.APP_IMPORT)
 
 
 # function execution route
-@execution.route("/service/execution/v1/execute/<function>/", methods=["POST"])
-@execution.route("/service/execution/v1/execute/<function>", methods=["POST"])
+@_execution.route("/service/execution/v1/execute/<function>/", methods=["POST"])
+@_execution.route("/service/execution/v1/execute/<function>", methods=["POST"])
 @protected()
 def execute(function: str):
     """

@@ -24,7 +24,10 @@ def _checkout(success_url: str, cancel_url: str, email: str, linedata: [dict], m
     returns:
         stripe.checkout.Session: created checkout session object
     """
-    return stripe.checkout.Session.create(mode="payment", success_url=success_url, cancel_url=cancel_url, customer_email=email, line_items=linedata, metadata=metadata or {})
+    try:
+        return stripe.checkout.Session.create(mode="payment", success_url=success_url, cancel_url=cancel_url, customer_email=email, line_items=linedata, metadata=metadata or {})
+    except Exception as ex:
+        raise ex
 
 
 def _subscription(email: str, items: [dict], due: int = 7, metadata: dict = None):

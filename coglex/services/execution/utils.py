@@ -3,7 +3,7 @@ execution service module for managing function execution operations
 this module provides functionality for dynamic function execution from the main utils.py
 """
 
-# retrieve information from live Python objects.
+# retrieve information from live Python objects
 import inspect
 
 
@@ -26,7 +26,7 @@ def _execute(function: str, *args, **kwargs) -> any:
         # check if the found object is a callable function defined in this module
         if not (inspect.isfunction(func) and func.__module__ == __name__):
             if func is None or not callable(func):
-                raise AttributeError(f"Failure Calling Function '{function}' in 'utils.py'")
+                raise AttributeError()
 
         # execute the function with provided arguments
         return func(*args, **kwargs)

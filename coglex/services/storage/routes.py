@@ -27,12 +27,11 @@ from coglex.services.storage.utils import _find, _insert, _patch, _delete
 
 
 # blueprint instance
-storage = Blueprint("storage", config.APP_IMPORT)
+_storage = Blueprint("_storage", config.APP_IMPORT)
 
 
-# accepting get requests for multiple document queries
-@storage.route("/service/storage/v1/<collection>/", methods=["GET"])
-@storage.route("/service/storage/v1/<collection>", methods=["GET"])
+@_storage.route("/service/storage/v1/<collection>/", methods=["GET"])
+@_storage.route("/service/storage/v1/<collection>", methods=["GET"])
 @protected()
 def find_many(collection: str):
     """
@@ -60,9 +59,8 @@ def find_many(collection: str):
     return jsonify(req), 200
 
 
-# accepting get requests for single specific document query
-@storage.route("/service/storage/v1/<collection>/<key>/", methods=["GET"])
-@storage.route("/service/storage/v1/<collection>/<key>", methods=["GET"])
+@_storage.route("/service/storage/v1/<collection>/<key>/", methods=["GET"])
+@_storage.route("/service/storage/v1/<collection>/<key>", methods=["GET"])
 @protected()
 def find_one(collection: str, key: str):
     """
@@ -91,9 +89,8 @@ def find_one(collection: str, key: str):
     return jsonify(req), 200
 
 
-# accepting post requests for single insertions
-@storage.route("/service/storage/v1/<collection>/", methods=["POST"])
-@storage.route("/service/storage/v1/<collection>", methods=["POST"])
+@_storage.route("/service/storage/v1/<collection>/", methods=["POST"])
+@_storage.route("/service/storage/v1/<collection>", methods=["POST"])
 @protected()
 def insert_one(collection: str):
     """
@@ -113,9 +110,8 @@ def insert_one(collection: str):
     return jsonify(req), 200
 
 
-# accepting post requests for multiple document insertions
-@storage.route("/service/storage/v1/<collection>/", methods=["POST"])
-@storage.route("/service/storage/v1/<collection>", methods=["POST"])
+@_storage.route("/service/storage/v1/<collection>/", methods=["POST"])
+@_storage.route("/service/storage/v1/<collection>", methods=["POST"])
 @protected()
 def insert_many(collection: str):
     """
@@ -135,9 +131,8 @@ def insert_many(collection: str):
     return jsonify(req), 200
 
 
-# accepting patch requests for single document updates
-@storage.route("/service/storage/v1/<collection>/<key>/", methods=["PATCH"])
-@storage.route("/service/storage/v1/<collection>/<key>", methods=["PATCH"])
+@_storage.route("/service/storage/v1/<collection>/<key>/", methods=["PATCH"])
+@_storage.route("/service/storage/v1/<collection>/<key>", methods=["PATCH"])
 @protected()
 def patch_one(collection: str, key: str):
     """
@@ -162,9 +157,8 @@ def patch_one(collection: str, key: str):
     return jsonify(req), 200
 
 
-# accepting patch requests for multiple document updates
-@storage.route("/service/storage/v1/<collection>/", methods=["PATCH"])
-@storage.route("/service/storage/v1/<collection>", methods=["PATCH"])
+@_storage.route("/service/storage/v1/<collection>/", methods=["PATCH"])
+@_storage.route("/service/storage/v1/<collection>", methods=["PATCH"])
 @protected()
 def patch_many(collection: str):
     """
@@ -192,9 +186,8 @@ def patch_many(collection: str):
     return jsonify(req), 200
 
 
-# accepting delete requests for single document suppressions
-@storage.route("/service/storage/v1/<collection>/<key>/", methods=["DELETE"])
-@storage.route("/service/storage/v1/<collection>/<key>", methods=["DELETE"])
+@_storage.route("/service/storage/v1/<collection>/<key>/", methods=["DELETE"])
+@_storage.route("/service/storage/v1/<collection>/<key>", methods=["DELETE"])
 @protected()
 def delete_one(collection: str, key: str):
     """
@@ -219,9 +212,8 @@ def delete_one(collection: str, key: str):
     return jsonify(req), 200
 
 
-# accepting delete requests for multiple document suppressions
-@storage.route("/service/storage/v1/<collection>/", methods=["DELETE"])
-@storage.route("/service/storage/v1/<collection>", methods=["DELETE"])
+@_storage.route("/service/storage/v1/<collection>/", methods=["DELETE"])
+@_storage.route("/service/storage/v1/<collection>", methods=["DELETE"])
 @protected()
 def delete_many(collection: str):
     """

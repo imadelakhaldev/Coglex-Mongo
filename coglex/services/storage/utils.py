@@ -73,7 +73,7 @@ def _patch(collection: str, document: dict, query: dict = {}) -> int or None:
 
     args:
         collection (str): name of the mongodb collection to update
-        document (dict): record containing the fields to update
+        document (dict): record containing the fields to update ($set, $inc, $push, and every other operator are accepted)
         query (dict, optional): filter criteria to identify records to update
 
     returns:
@@ -81,7 +81,7 @@ def _patch(collection: str, document: dict, query: dict = {}) -> int or None:
     """
     try:
         # update document
-        execution = storage.get_collection(collection).update_many(query, {"$set": document})
+        execution = storage.get_collection(collection).update_many(query, document)
 
         # if record updated, return success
         if execution.matched_count > 0:

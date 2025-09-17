@@ -11,16 +11,10 @@ import random
 # cross-platform terminal colored inputs
 from colorama import Fore, Style
 
-# pip install blinker
-# programmable signal handling
-from blinker import Namespace
-
 # pip install bcrypt
 # password hashing library
-import bcrypt
-
-# stripe webhook signal
-stripe_webhook_signal = Namespace().signal("stripe_webhook")
+# heavy import moved to local functions, instead of global module import
+# import bcrypt
 
 # local imports
 import config
@@ -38,7 +32,6 @@ def sprint(color: str, content: str) -> None:
     print(f"{getattr(Fore, color.upper(), Fore.RESET)}{content}{Style.RESET_ALL}")
 
 
-# formats a string by replacing placeholders with values from a dictionary
 def fstring(template: str, variables: dict) -> str:
     """
     format a string by replacing placeholders with values from a dictionary
@@ -57,7 +50,6 @@ def fstring(template: str, variables: dict) -> str:
     return template
 
 
-# generate a random hexadecimal string of specified length
 def hexgen(length: int = config.MONGODB_HEX_LENGTH) -> str:
     """
     generate a random hexadecimal string of specified length
@@ -81,6 +73,7 @@ def phash(password: str) -> str:
     returns:
         str: the hashed password as a utf-8 string
     """
+    import bcrypt
     return bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
 
 
@@ -95,4 +88,5 @@ def pcheck(password: str, hashed: str) -> bool:
     returns:
         bool: true if the password matches the hashed password, false otherwise
     """
+    import bcrypt
     return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))

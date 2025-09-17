@@ -19,16 +19,15 @@ import config
 
 # importing blueprint utilities used in current routing context
 from coglex import protected
-from coglex.services.auth.utils import _signup, _signin, _refresh
+from coglex.services.auth.utils import _signup, _signin, _signout, _refresh
 
 
 # blueprint instance
-auth = Blueprint("auth", config.APP_IMPORT)
+_auth = Blueprint("_auth", config.APP_IMPORT)
 
 
-# user creation route
-@auth.route("/service/auth/v1/signup/<collection>/", methods=["POST"])
-@auth.route("/service/auth/v1/signup/<collection>", methods=["POST"])
+@_auth.route("/service/auth/v1/signup/<collection>/", methods=["POST"])
+@_auth.route("/service/auth/v1/signup/<collection>", methods=["POST"])
 @protected()
 def signup(collection: str):
     """
@@ -52,9 +51,8 @@ def signup(collection: str):
     return jsonify(req), 200
 
 
-# user verification route
-@auth.route("/service/auth/v1/signin/<collection>/", methods=["POST"])
-@auth.route("/service/auth/v1/signin/<collection>", methods=["POST"])
+@_auth.route("/service/auth/v1/signin/<collection>/", methods=["POST"])
+@_auth.route("/service/auth/v1/signin/<collection>", methods=["POST"])
 @protected()
 def signin(collection: str):
     """
@@ -78,9 +76,8 @@ def signin(collection: str):
     return jsonify(req), 200
 
 
-# session retrival route
-@auth.route("/service/auth/v1/session/<collection>/", methods=["GET"])
-@auth.route("/service/auth/v1/session/<collection>", methods=["GET"])
+@_auth.route("/service/auth/v1/session/<collection>/", methods=["GET"])
+@_auth.route("/service/auth/v1/session/<collection>", methods=["GET"])
 @protected()
 def _session(collection: str):
     """
@@ -96,9 +93,8 @@ def _session(collection: str):
         return abort(500, description=str(ex))
 
 
-# session deletion route
-@auth.route("/service/auth/v1/signout/<collection>/", methods=["GET"])
-@auth.route("/service/auth/v1/signout/<collection>", methods=["GET"])
+@_auth.route("/service/auth/v1/signout/<collection>/", methods=["GET"])
+@_auth.route("/service/auth/v1/signout/<collection>", methods=["GET"])
 def signout(collection: str):
     """
     handle user signout / session termination requests for a specified collection
@@ -107,19 +103,14 @@ def signout(collection: str):
         collection (str): actual name of the collection to remove session data from
     """
     try:
-        # signing out user
-        session.pop(collection, None)
-
-        # returning success response
-        return jsonify(True), 200
+        return jsonify(_signout(collection)), 200
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
 
 
-# user update route
-@auth.route("/service/auth/v1/refresh/<collection>/", methods=["PATCH"])
-@auth.route("/service/auth/v1/refresh/<collection>", methods=["PATCH"])
+@_auth.route("/service/auth/v1/refresh/<collection>/", methods=["PATCH"])
+@_auth.route("/service/auth/v1/refresh/<collection>", methods=["PATCH"])
 @protected()
 def refresh(collection: str):
     """
