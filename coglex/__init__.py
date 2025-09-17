@@ -117,7 +117,6 @@ def authenticated(collection: str = config.MONGODB_AUTH_COLLECTION):
 from coglex.services.auth.routes import _auth
 from coglex.services.storage.routes import _storage
 from coglex.services.archive.routes import _archive
-from coglex.services.execution.routes import _execution
 from coglex.services.payment.routes import _payment
 
 # importing gateway modules
@@ -127,7 +126,6 @@ from coglex.services.payment.routes import _payment
 application.register_blueprint(_auth)
 application.register_blueprint(_storage)
 application.register_blueprint(_archive)
-application.register_blueprint(_execution)
 application.register_blueprint(_payment)
 
 # register gateway blueprints with application

@@ -16,13 +16,12 @@
 - 🔐 **Robust Authentication System** - Session-based user authentication with secure password hashing using bcrypt
 - 📁 **File Management** - Secure file upload, download, and deletion with temporary storage and metadata tracking
 - 💳 **Payment Integration** - Stripe payment processing for subscriptions and one-time payments with webhook support
-- 🔄 **Dynamic Function Execution** - Remote execution of Python functions with parameter validation and error handling
 - 📦 **MongoDB Integration** - Comprehensive CRUD operations with PyMongo and custom hex ID generation
 - 🛡️ **API Protection** - Multi-layered security with API keys and session-based authentication decorators
 
 ## 📖 Overview
 
-Coglex Intelligence is a sophisticated backend service built with Flask, designed to provide secure and scalable API endpoints for user authentication, data storage, file management, payment processing, and dynamic function execution. The application follows a modular architecture with clearly separated services, each providing specific functionality through RESTful APIs.
+Coglex Intelligence is a sophisticated backend service built with Flask, designed to provide secure and scalable API endpoints for user authentication, data storage, file management, and payment processing. The application follows a modular architecture with clearly separated services, each providing specific functionality through RESTful APIs.
 
 ## 🏗️ Project Structure
 
@@ -30,7 +29,7 @@ Coglex Intelligence is a sophisticated backend service built with Flask, designe
 coglex/
 ├── __init__.py        # Flask app initialization, DB connection, blueprints, decorators
 ├── gateway/           # Entry point for new routes and applications
-│   └── tranzlate/     # Gateway module for Tranzlate application
+│   └── module/     # example module for developed application
 ├── services/          # Core service modules
 │   ├── auth/          # Authentication service
 │   │   ├── routes.py  # API routes for auth operations (signup, signin, session, signout, refresh)
@@ -38,9 +37,6 @@ coglex/
 │   ├── archive/       # File storage service
 │   │   ├── routes.py  # File operation endpoints (upload, download, delete)
 │   │   └── utils.py   # File handling utilities with temporary storage
-│   ├── execution/     # Function execution service
-│   │   ├── routes.py  # Dynamic function execution endpoints
-│   │   └── utils.py   # Function execution helpers with inspection
 │   ├── payment/       # Payment processing (Stripe)
 │   │   ├── routes.py  # Payment endpoints (checkout, subscription)
 │   │   └── utils.py   # Stripe integration helpers with webhook verification
@@ -64,7 +60,7 @@ coglex/
 
 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/coglex.git
+git clone https://github.com/imadelakhaldev/coglex.git
 cd coglex
 ```
 
@@ -200,18 +196,6 @@ GET /service/archive/v1/list/  # List uploaded files
     - Includes file size, upload date, and type information
 ```
 
-### Execution Service
-
-```python
-# Dynamic Function Execution
-POST /service/execution/v1/execute/  # Execute Python code dynamically
-    - Accepts Python code as string in request body
-    - Executes code in isolated environment with error handling
-    - Returns execution results or error messages
-    - Supports both synchronous execution and result capture
-    - Implements security measures for safe code execution
-```
-
 ### Payment Service
 
 ```python
@@ -232,50 +216,12 @@ GET /service/payment/v1/payment-status/<payment_intent_id>/  # Check payment sta
     - Returns payment details and confirmation status
 ```
 
-## 🔌 Event System
-
-### Signal Handlers
-
-The application uses Flask signals for extensible event handling:
-
-```python
-from coglex.utils import stripe_webhook_received
-
-@stripe_webhook_received.connect
-def handle_payment(sender, **kwargs):
-    payload = sender
-    # Custom payment processing logic
-    # - Update order status
-    # - Send confirmation emails
-    # - Trigger fulfillment
-```
-
-## 🧪 Testing
-
-### API Testing
-
-Import the provided collections for comprehensive API testing:
-
-```bash
-# Using Insomnia
-insomnia import insomnia.yaml
-
-# Using Postman
-postman import insomnia.har
-```
-
-The collections include pre-configured requests for all endpoints with:
-- Request headers setup
-- Body templates
-- Environment variables
-- Authentication flows
-
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
+2. Create your feature branch (`git checkout -b feature/galaxy`)
+3. Commit your changes (`git commit -m 'added galaxy forming features'`)
+4. Push to the branch (`git push origin feature/galaxy`)
 5. Open a Pull Request
 
 ## 👥 Authors
