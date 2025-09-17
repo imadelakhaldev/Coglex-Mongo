@@ -9,6 +9,9 @@ while maintaining proper error handling
 # online payment processing provider
 import stripe
 
+# importing global configuration
+import config
+
 
 def _checkout(success_url: str, cancel_url: str, email: str, linedata: [dict], metadata: dict = None):
     """
@@ -64,7 +67,7 @@ def _subscription(email: str, items: [dict], due: int = 7, metadata: dict = None
         raise ex
 
 
-def _verify(signature: str, payload: bytes, secret: str):
+def _verify(signature: str, payload: bytes, secret: str = config.STRIPE_PUBLISHABLE_KEY):
     """
     verify the signature of a stripe webhook event
 

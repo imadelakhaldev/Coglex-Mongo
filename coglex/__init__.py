@@ -121,7 +121,7 @@ from coglex.services.execution.routes import _execution
 from coglex.services.payment.routes import _payment
 
 # importing gateway modules
-from coglex.gateway.tranzlate.routes import tranzlate
+# from coglex.gateway.module.routes import module
 
 # register service blueprints with application
 application.register_blueprint(_auth)
@@ -131,4 +131,4 @@ application.register_blueprint(_execution)
 application.register_blueprint(_payment)
 
 # register gateway blueprints with application
-application.register_blueprint(tranzlate)
+# application.register_blueprint(module)
