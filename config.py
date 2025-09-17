@@ -26,11 +26,11 @@ APP_FOLDER = "coglex"
 APP_STATIC = os.path.join(APP_FOLDER, "static")
 APP_TEMPLATES = os.path.join(APP_FOLDER, "templates")
 APP_UPLOAD = os.path.join(APP_FOLDER, "static", "documents")
-APP_NAME = "Tranzlate"
+APP_NAME = "Coglex"
 APP_VERSION = "Genesis"
-APP_TITLE = "AI-Powered Document Translation"
-APP_COMPANY = "DIGISOFTWORKS LTD"
-APP_WEBSITE = "https://tranzlate.ma/"
+APP_TITLE = "Backend Collection for Web Development"
+APP_COMPANY = "IMAD EL AKHAL"
+APP_WEBSITE = "https://coglex.ma/"
 
 # server configurations and session settings
 BASE_URL = "http://127.0.0.1:5000"
@@ -43,7 +43,7 @@ SEND_FILE_MAX_AGE = timedelta(days=365)
 SERVER_SECRET = os.environ.get("SERVER_SECRET")
 SERVER_HOST = "0.0.0.0"
 SERVER_PORT = 5000
-SERVER_DEBUG = True
+SERVER_DEBUG = True # must be set to False in production, True for local testing and development
 SERVER_SESSION_LIFETIME = timedelta(days=8)
 
 # smtp mailing server credentials
