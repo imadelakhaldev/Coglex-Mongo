@@ -23,11 +23,43 @@ import config
 from coglex import protected
 
 # importing blueprint utilities used in current routing context
-from coglex.services.storage.utils import _find, _insert, _patch, _delete
+from coglex.services.storage.utils import _aggregate, _find, _insert, _patch, _delete
 
 
 # blueprint instance
 _storage = Blueprint("_storage", config.APP_IMPORT)
+
+
+@_storage.route("/service/storage/v1/<collection>/aggregate/", methods=["POST"])
+@_storage.route("/service/storage/v1/<collection>/aggregate", methods=["POST"])
+@protected()
+def aggregate(collection: str):
+    """
+    perform aggregation operations on documents in the specified collection
+
+    args:
+        collection (str): name of the collection to perform aggregation on
+    """
+    # get pipeline from request body
+    pipeline = request.json.get("pipeline")
+
+    # checking required parameters
+    if not pipeline:
+        return abort(400)
+
+    try:
+        # perform aggregation
+        req = _aggregate(collection, pipeline)
+    except Exception as ex:
+        # rethrow exception
+        return abort(500, description=str(ex))
+
+    # if no results found, return error
+    if not req:
+        return abort(404)
+
+    # return aggregation results
+    return jsonify(req), 200
 
 
 @_storage.route("/service/storage/v1/<collection>/", methods=["GET"])

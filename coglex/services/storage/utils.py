@@ -13,6 +13,33 @@ from utils import hexgen
 from coglex import storage
 
 
+def _aggregate(collection: str, pipeline: list[dict]) -> list[dict] or None:
+    """
+    perform aggregation operations on documents in a mongodb collection
+
+    args:
+        collection (str): name of the mongodb collection to aggregate
+        pipeline (list[dict]): list of aggregation pipeline stages to be executed
+
+    returns:
+        list[dict] or none: result of the aggregation pipeline if successful, none if no results
+    """
+    try:
+        # execute aggregation pipeline
+        retrievals = list(storage.get_collection(collection).aggregate(pipeline))
+
+        # return results if any found
+        if retrievals:
+            return retrievals
+
+        # return none if no results
+        return None
+    except Exception as ex:
+        # rethrow exception
+        raise ex
+
+
+
 def _find(collection: str, query: dict = {}, keys: dict = {}) -> dict or list[dict] or None:
     """
     find records in a mongodb collection that match a specific query
