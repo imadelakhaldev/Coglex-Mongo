@@ -1,14 +1,17 @@
 """
 this module provides routing rules and endpoints for the database storage service
-it handles http requests for crud operations (create, read, update, delete) on documents
+it handles http requests for crud operations on documents
 in collections, with support for query parameters and document keys
 
-routes:
+Routes:
     GET /service/storage/v1/<collection>/ - retrieve multiple documents
     GET /service/storage/v1/<collection>/<key>/ - retrieve a specific document
-    POST /service/storage/v1/<collection>/ - insert a new document
+    POST /service/storage/v1/<collection>/ - insert new documents
     PATCH /service/storage/v1/<collection>/<key>/ - update a specific document
+    PATCH /service/storage/v1/<collection>/ - update multiple documents
     DELETE /service/storage/v1/<collection>/<key>/ - delete a specific document
+    DELETE /service/storage/v1/<collection>/ - delete multiple documents
+    POST /service/storage/v1/<collection>/aggregate/ - perform aggregation operations
 """
 
 
@@ -131,9 +134,16 @@ def insert_many(collection: str):
     args:
         collection (str): name of the collection to insert the documents into
     """
+    # get documents from request body
+    documents = request.json.get("documents")
+
+    # checking required parameters
+    if not documents:
+        return abort(400)
+
     try:
         # insert documents
-        req = _insert(collection, request.json.get("documents"))
+        req = _insert(collection, documents)
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
@@ -153,9 +163,16 @@ def patch_one(collection: str, key: str):
         collection (str): name of the collection containing the document to update
         key (str): unique identifier of the document to update
     """
+    # get document from request body
+    document = request.json.get("document")
+
+    # checking required parameters
+    if not document:
+        return abort(400)
+
     try:
         # patch document
-        req = _patch(collection, request.json.get("document"), {"_id": key})
+        req = _patch(collection, document, {"_id": key})
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
@@ -178,13 +195,20 @@ def patch_many(collection: str):
     args:
         collection (str): actual name of the collection to query
     """
+    # get document from request body
+    document = request.json.get("document")
+
+    # checking required parameters
+    if not document:
+        return abort(400)
+
     # convert keys string to dictionary if present
     # safely parse keys from request args using json.loads if present
     query = request.args.get("query")
 
     try:
         # patch document
-        req = _patch(collection, request.json.get("document"), json.loads(query) if query else None)
+        req = _patch(collection, document, json.loads(query) if query else None)
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))

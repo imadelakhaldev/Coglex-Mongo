@@ -1,13 +1,15 @@
 """
-authentication service routes module
-the routes handle user registration, authentication, session tracking and logout functionality
+this module implements rest api endpoints for user authentication and account management
+it provides the following core functionality:
 
-this module provides routing rules and endpoints for authentication operations including:
-- user signup
-- user signin/authentication
-- session management
-- user signout
-- user update
+- user registration (signup)
+- user authentication (signin) 
+- session management and tracking
+- user logout (signout)
+- user profile updates
+
+the routes in this module handle http requests for these operations and integrate
+with the underlying authentication services
 """
 
 
@@ -36,9 +38,16 @@ def signup(collection: str):
     args:
         collection (str): actual name of the collection to register the user in
     """
+    # get document from request body
+    _key, _password = request.json.get("_key"), request.json.get("_password")
+
+    # checking required parameters
+    if not _key or not _password:
+        return abort(400)
+
     try:
         # signing up user
-        req = _signup(collection, request.json.get("_key"), request.json.get("_password"), request.json.get("document"))
+        req = _signup(collection, _key, _password, request.json.get("document"))
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
@@ -61,9 +70,16 @@ def signin(collection: str):
     args:
         collection (str): actual name of the collection to authenticate the user against
     """
+    # get document from request body
+    _key, _password = request.json.get("_key"), request.json.get("_password")
+
+    # checking required parameters
+    if not _key or not _password:
+        return abort(400)
+
     try:
         # signing up user
-        req = _signin(collection, request.json.get("_key"), request.json.get("_password"), request.json.get("query"))
+        req = _signin(collection, _key, _password, request.json.get("query"))
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
@@ -119,9 +135,16 @@ def refresh(collection: str):
     args:
         collection (str): actual name of the collection to update user data in
     """
+    # get document from request body
+    _key, document = request.json.get("_key"), request.json.get("document")
+
+    # checking required parameters
+    if not _key or not document:
+        return abort(400)
+
     try:
         # refreshing user data
-        req = _refresh(collection, request.json.get("_key"), request.json.get("document"))
+        req = _refresh(collection, _key, document)
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
