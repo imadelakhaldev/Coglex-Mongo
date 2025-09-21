@@ -6,8 +6,8 @@ inserting new records, patching existing records, and deleting records
 """
 
 
-# importing base config parameters, and generic utilities
-from utils import hexgen
+# generating object ids for document identifiers
+from bson import ObjectId
 
 # importing the mongodb client created in application initialization
 from coglex import storage
@@ -81,7 +81,7 @@ def _insert(collection: str, documents: list[dict]) -> list[str]:
     try:
         # generate _id for each document and prepare for insertion
         # insert documents with generated IDs
-        execution = storage.get_collection(collection).insert_many([{**document, **{"_id": hexgen()}} for document in documents])
+        execution = storage.get_collection(collection).insert_many([{**document, **{"_id": str(ObjectId())}} for document in documents])
 
         # convert ObjectIds to strings
         references = [str(_id) for _id in execution.inserted_ids]

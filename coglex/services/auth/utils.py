@@ -80,6 +80,7 @@ def _signin(collection: str, _key: str, _password: str, query: dict = {}) -> dic
             return None
 
         # saving user given password for later user checking
+        # it would be best if we removed the password from session data, and verified session decorator without password usage, later to do
         authentication["_password"] = _password
 
         # updating flask session for usage across framework

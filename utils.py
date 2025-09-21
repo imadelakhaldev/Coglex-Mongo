@@ -4,9 +4,6 @@ this module provides common utility functions and helper methods that are used a
 """
 
 
-# standard library imports
-import random
-
 # pip install colorama
 # cross-platform terminal colored inputs
 from colorama import Fore, Style
@@ -17,7 +14,7 @@ from colorama import Fore, Style
 # import bcrypt
 
 # local imports
-import config
+# import config
 
 
 # prints colored terminal output using colorama
@@ -48,19 +45,6 @@ def fstring(template: str, variables: dict) -> str:
         template = template.replace(placeholder, str(value))
 
     return template
-
-
-def hexgen(length: int = config.MONGODB_HEX_LENGTH) -> str:
-    """
-    generate a random hexadecimal string of specified length
-
-    args:
-        length (int): length of the hexadecimal string to generate
-
-    returns:
-        str: randomly generated hexadecimal string of specified length
-    """
-    return "".join([hex(x)[2:] for x in random.randbytes(length // 2)])
 
 
 def phash(password: str) -> str:
