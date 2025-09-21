@@ -124,27 +124,6 @@ def find_one(collection: str, key: str):
 @_storage.route("/service/storage/v1/<collection>/", methods=["POST"])
 @_storage.route("/service/storage/v1/<collection>", methods=["POST"])
 @protected()
-def insert_one(collection: str):
-    """
-    insert a new document into the specified collection
-
-    args:
-        collection (str): name of the collection to insert the document into
-    """
-    try:
-        # insert document
-        req = _insert(collection, [request.json.get("document")])
-    except Exception as ex:
-        # rethrow exception
-        return abort(500, description=str(ex))
-
-    # if record inserted, return success
-    return jsonify(req), 200
-
-
-@_storage.route("/service/storage/v1/<collection>/", methods=["POST"])
-@_storage.route("/service/storage/v1/<collection>", methods=["POST"])
-@protected()
 def insert_many(collection: str):
     """
     insert multiple documents into the specified collection
