@@ -39,7 +39,6 @@ def _aggregate(collection: str, pipeline: list[dict]) -> list[dict] or None:
         raise ex
 
 
-
 def _find(collection: str, query: dict = {}, keys: dict = {}) -> dict or list[dict] or None:
     """
     find records in a mongodb collection that match a specific query
