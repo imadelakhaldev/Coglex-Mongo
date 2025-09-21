@@ -21,6 +21,7 @@ load_dotenv()
 
 
 # application details and configurations
+# baic global settings
 APP_IMPORT = __name__
 APP_FOLDER = "coglex"
 APP_STATIC = os.path.join(APP_FOLDER, "static")
@@ -62,3 +63,7 @@ MONGODB_AUTH_COLLECTION = "USERS"
 # stripe payment api keys
 STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY")
 STRIPE_PUBLISHABLE_KEY = os.environ.get("STRIPE_PUBLISHABLE_KEY")
+
+# custom gateway configurations
+# basic settings and configurations
+# MODULE_CONFIG = True
