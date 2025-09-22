@@ -17,7 +17,7 @@ from coglex.services.storage.utils import _insert, _find, _delete
 import config
 
 
-def _upload(collection: str, file) -> str or None:
+def _upload(file, collection: str = config.MONGODB_ARCHIVE_COLLECTION) -> str or None:
     """
     uploads a file and stores its metadata in the specified collection
 
@@ -57,7 +57,7 @@ def _upload(collection: str, file) -> str or None:
         raise ex
 
 
-def _download(collection: str, reference: str) -> tuple or None:
+def _download(reference: str, collection: str = config.MONGODB_ARCHIVE_COLLECTION) -> tuple or None:
     """
     retrieves a file path and filename based on its id from the specified collection
 
@@ -91,7 +91,7 @@ def _download(collection: str, reference: str) -> tuple or None:
         raise ex
 
 
-def _fdelete(collection: str, reference: str) -> bool:
+def _fdelete(reference: str, collection: str = config.MONGODB_ARCHIVE_COLLECTION) -> bool:
     """
     deletes a file and its metadata from the specified collection
 

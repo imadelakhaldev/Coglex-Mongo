@@ -25,15 +25,12 @@ _archive = Blueprint("_archive", config.APP_IMPORT)
 
 
 # file upload route
-@_archive.route("/service/archive/v1/upload/<collection>/", methods=["POST"])
-@_archive.route("/service/archive/v1/upload/<collection>", methods=["POST"])
+@_archive.route("/service/archive/v1/upload/", methods=["POST"])
+@_archive.route("/service/archive/v1/upload", methods=["POST"])
 @protected()
-def upload(collection: str):
+def upload():
     """
     handle file upload requests for a specified collection
-
-    args:
-        collection (str): actual name of the collection to store the file in
     """
     # uploading file
     if "file" not in request.files:
@@ -48,7 +45,7 @@ def upload(collection: str):
 
     try:
         # upload the file
-        req = _upload(collection, file)
+        req = _upload(file)
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
@@ -63,20 +60,19 @@ def upload(collection: str):
 
 
 # file download route
-@_archive.route("/service/archive/v1/download/<collection>/<reference>/", methods=["GET"])
-@_archive.route("/service/archive/v1/download/<collection>/<reference>", methods=["GET"])
+@_archive.route("/service/archive/v1/download/<reference>/", methods=["GET"])
+@_archive.route("/service/archive/v1/download/<reference>", methods=["GET"])
 @protected()
-def download(collection: str, reference: str):
+def download(reference: str):
     """
     handle file download requests for a specified collection and reference
     
     args:
-        collection (str): actual name of the collection to retrieve the file from
         reference (str): the id of the file to download
     """
     try:
         # downloading file
-        filepath, filename = _download(collection, reference)
+        filepath, filename = _download(reference)
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
@@ -90,20 +86,19 @@ def download(collection: str, reference: str):
 
 
 # file deletion route
-@_archive.route("/service/archive/v1/delete/<collection>/<reference>/", methods=["DELETE"])
-@_archive.route("/service/archive/v1/delete/<collection>/<reference>", methods=["DELETE"])
+@_archive.route("/service/archive/v1/delete/<reference>/", methods=["DELETE"])
+@_archive.route("/service/archive/v1/delete/<reference>", methods=["DELETE"])
 @protected()
-def fdelete(collection: str, reference: str):
+def fdelete(reference: str):
     """
     handle file deletion requests for a specified collection and reference
     
     args:
-        collection (str): actual name of the collection to delete the file from
         reference (str): the id of the file to delete
     """
     try:
         # deleting file
-        req = _fdelete(collection, reference)
+        req = _fdelete(reference)
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
