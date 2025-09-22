@@ -65,35 +65,6 @@ def aggregate(collection: str):
     return jsonify(req), 200
 
 
-@_storage.route("/service/storage/v1/<collection>/", methods=["GET"])
-@_storage.route("/service/storage/v1/<collection>", methods=["GET"])
-@protected()
-def find_many(collection: str):
-    """
-    retrieve multiple documents from the specified collection based on query parameters
-
-    args:
-        collection (str): actual name of the collection to query
-    """
-    # convert keys string to dictionary if present
-    # safely parse keys from request args using json.loads if present
-    query, keys = request.args.get("query"), request.args.get("keys")
-
-    try:
-        # find documents matching query
-        req = _find(collection, json.loads(query) if query else None, json.loads(keys) if keys else None)
-    except Exception as ex:
-        # rethrow exception
-        return abort(500, description=str(ex))
-
-    # if no records found, return error
-    if not req:
-        return abort(404)
-
-    # returning results
-    return jsonify(req), 200
-
-
 @_storage.route("/service/storage/v1/<collection>/<key>/", methods=["GET"])
 @_storage.route("/service/storage/v1/<collection>/<key>", methods=["GET"])
 @protected()
@@ -112,6 +83,35 @@ def find_one(collection: str, key: str):
     try:
         # find document matching query
         req = _find(collection, {"_id": key}, json.loads(keys) if keys else None)
+    except Exception as ex:
+        # rethrow exception
+        return abort(500, description=str(ex))
+
+    # if no records found, return error
+    if not req:
+        return abort(404)
+
+    # returning results
+    return jsonify(req), 200
+
+
+@_storage.route("/service/storage/v1/<collection>/", methods=["GET"])
+@_storage.route("/service/storage/v1/<collection>", methods=["GET"])
+@protected()
+def find_many(collection: str):
+    """
+    retrieve multiple documents from the specified collection based on query parameters
+
+    args:
+        collection (str): actual name of the collection to query
+    """
+    # convert keys string to dictionary if present
+    # safely parse keys from request args using json.loads if present
+    query, keys = request.args.get("query"), request.args.get("keys")
+
+    try:
+        # find documents matching query
+        req = _find(collection, json.loads(query) if query else None, json.loads(keys) if keys else None)
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
