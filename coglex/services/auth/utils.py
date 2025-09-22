@@ -82,9 +82,8 @@ def _signin(_key: str, _password: str, query: dict = {}, collection: str = confi
         if not pcheck(_password, authentication.get("_password")):
             return None
 
-        # saving user given password for later user checking
-        # it would be best if we removed the password from session data, and verified session decorator without password usage, later to do
-        authentication["_password"] = _password
+        # saving signin query for later user checking (e.g., active=True)
+        authentication["_query"] = query
 
         # updating flask session for usage across framework
         session.update({collection: authentication})
@@ -94,6 +93,33 @@ def _signin(_key: str, _password: str, query: dict = {}, collection: str = confi
     except Exception as ex:
         # rethrow exception
         raise ex
+
+
+def _verify(_key: str, query: dict = {}, collection: str = config.MONGODB_AUTH_COLLECTION) -> dict | None:
+    """
+    verifies if a user exists and matches additional query criteria
+
+    args:
+        collection (str): name of the collection to verify against
+        _key (str): unique identifier for the user (e.g., email or username)
+        query (dict) (optional): additional query parameters to filter user documents
+
+    returns:
+        dict | None: user document if user exists and matches criteria, None otherwise
+    """
+    try:
+        # find user document
+        authentication = _find(collection, {"_key": _key, **query})
+
+        # if no user found or multiple users found (shouldn't happen with unique _key)
+        if not authentication or isinstance(authentication, list):
+            return None
+
+        # return authentication document
+        return authentication
+    except Exception as ex:
+        raise ex
+
 
 
 def _signout(collection: str = config.MONGODB_AUTH_COLLECTION) -> bool:
