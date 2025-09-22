@@ -17,10 +17,6 @@ from coglex.services.storage.utils import _insert, _find, _delete
 import config
 
 
-# TODO: add file type whitelist validation
-# TODO: add virus scan
-
-
 def _upload(file, collection: str = config.MONGODB_ARCHIVE_COLLECTION) -> str or None:
     """
     uploads a file and stores its metadata in the specified collection
