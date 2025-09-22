@@ -14,8 +14,11 @@ from utils import pcheck, phash
 # mongodb storage module
 from coglex.services.storage.utils import _insert, _find, _patch
 
+# global confirgurations
+import config
 
-def _signup(collection: str, _key: str, _password: str, document: dict = {}) -> str | None:
+
+def _signup(_key: str, _password: str, document: dict = {}, collection: str = config.MONGODB_AUTH_COLLECTION) -> str | None:
     """
     creates a new user document in the specified collection
 
@@ -49,7 +52,7 @@ def _signup(collection: str, _key: str, _password: str, document: dict = {}) -> 
         raise ex
 
 
-def _signin(collection: str, _key: str, _password: str, query: dict = {}) -> dict or None:
+def _signin(_key: str, _password: str, query: dict = {}, collection: str = config.MONGODB_AUTH_COLLECTION) -> dict or None:
     """
     authenticates a user by validating their credentials
 
@@ -93,7 +96,7 @@ def _signin(collection: str, _key: str, _password: str, query: dict = {}) -> dic
         raise ex
 
 
-def _signout(collection: str) -> bool:
+def _signout(collection: str = config.MONGODB_AUTH_COLLECTION) -> bool:
     """
     signs out a user by removing their session data
 
@@ -115,7 +118,7 @@ def _signout(collection: str) -> bool:
         raise ex
 
 
-def _refresh(collection: str, _key: str, document: dict) -> int | None:
+def _refresh(_key: str, document: dict, collection: str = config.MONGODB_AUTH_COLLECTION) -> int | None:
     """
     updates user information in the specified collection
 

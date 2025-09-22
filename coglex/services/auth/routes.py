@@ -28,15 +28,12 @@ from coglex.services.auth.utils import _signup, _signin, _signout, _refresh
 _auth = Blueprint("_auth", config.APP_IMPORT)
 
 
-@_auth.route("/service/auth/v1/signup/<collection>/", methods=["POST"])
-@_auth.route("/service/auth/v1/signup/<collection>", methods=["POST"])
+@_auth.route("/service/auth/v1/signup/", methods=["POST"])
+@_auth.route("/service/auth/v1/signup", methods=["POST"])
 @protected()
-def signup(collection: str):
+def signup():
     """
     handle user signup requests for a specified collection
-    
-    args:
-        collection (str): actual name of the collection to register the user in
     """
     # get document from request body
     _key, _password = request.json.get("_key"), request.json.get("_password")
@@ -47,7 +44,7 @@ def signup(collection: str):
 
     try:
         # signing up user
-        req = _signup(collection, _key, _password, request.json.get("document"))
+        req = _signup(_key, _password, request.json.get("document"))
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
@@ -60,15 +57,12 @@ def signup(collection: str):
     return jsonify(req), 200
 
 
-@_auth.route("/service/auth/v1/signin/<collection>/", methods=["POST"])
-@_auth.route("/service/auth/v1/signin/<collection>", methods=["POST"])
+@_auth.route("/service/auth/v1/signin/", methods=["POST"])
+@_auth.route("/service/auth/v1/signin", methods=["POST"])
 @protected()
-def signin(collection: str):
+def signin():
     """
     handle user signin/authentication requests for a specified collection
-    
-    args:
-        collection (str): actual name of the collection to authenticate the user against
     """
     # get document from request body
     _key, _password = request.json.get("_key"), request.json.get("_password")
@@ -79,7 +73,7 @@ def signin(collection: str):
 
     try:
         # signing up user
-        req = _signin(collection, _key, _password, request.json.get("query"))
+        req = _signin(_key, _password, request.json.get("query"))
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
@@ -92,48 +86,39 @@ def signin(collection: str):
     return jsonify(req), 200
 
 
-@_auth.route("/service/auth/v1/session/<collection>/", methods=["GET"])
-@_auth.route("/service/auth/v1/session/<collection>", methods=["GET"])
+@_auth.route("/service/auth/v1/session/", methods=["GET"])
+@_auth.route("/service/auth/v1/session", methods=["GET"])
 @protected()
-def _session(collection: str):
+def _session():
     """
     retrieve the current session data for a specified collection
-    
-    args:
-        collection (str): actual name of the collection to get session data from
     """
     try:
-        return jsonify(session.get(collection)), 200
+        return jsonify(session.get(config.MONGODB_AUTH_COLLECTION)), 200
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
 
 
-@_auth.route("/service/auth/v1/signout/<collection>/", methods=["GET"])
-@_auth.route("/service/auth/v1/signout/<collection>", methods=["GET"])
-def signout(collection: str):
+@_auth.route("/service/auth/v1/signout/", methods=["GET"])
+@_auth.route("/service/auth/v1/signout", methods=["GET"])
+def signout():
     """
     handle user signout / session termination requests for a specified collection
-    
-    args:
-        collection (str): actual name of the collection to remove session data from
     """
     try:
-        return jsonify(_signout(collection)), 200
+        return jsonify(_signout()), 200
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
 
 
-@_auth.route("/service/auth/v1/refresh/<collection>/", methods=["PATCH"])
-@_auth.route("/service/auth/v1/refresh/<collection>", methods=["PATCH"])
+@_auth.route("/service/auth/v1/refresh/", methods=["PATCH"])
+@_auth.route("/service/auth/v1/refresh", methods=["PATCH"])
 @protected()
-def refresh(collection: str):
+def refresh():
     """
     handle user data refresh/update requests for a specified collection
-    
-    args:
-        collection (str): actual name of the collection to update user data in
     """
     # get document from request body
     _key, document = request.json.get("_key"), request.json.get("document")
@@ -144,7 +129,7 @@ def refresh(collection: str):
 
     try:
         # refreshing user data
-        req = _refresh(collection, _key, document)
+        req = _refresh(_key, document)
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
