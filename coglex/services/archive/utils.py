@@ -6,7 +6,6 @@ operations utilizing mongodb client for file metadata management and local file 
 
 # standard imports
 import os
-import tempfile
 
 # werkzeug utilities
 from werkzeug.utils import secure_filename
@@ -14,8 +13,11 @@ from werkzeug.utils import secure_filename
 # mongodb storage module
 from coglex.services.storage.utils import _insert, _find, _delete
 
+# global configurations
+import config
 
-def _upload(collection: str, file) -> str:
+
+def _upload(collection: str, file) -> str or None:
     """
     uploads a file and stores its metadata in the specified collection
 
@@ -25,19 +27,30 @@ def _upload(collection: str, file) -> str:
 
     returns:
         str: the inserted document's / file's id
+        None: if file size exceeds max file size limit
     """
     try:
-        # secure the filename
-        filename = secure_filename(file.filename)
+        # check file size against maximum limit
+        file.seek(0, os.SEEK_END)
+        size = file.tell()
+        file.seek(0)
 
-        # create a temporary directory to save the file
-        filepath = os.path.join(tempfile.mkdtemp(), filename)
-        file.save(filepath)
+        # reject file upload if size exceeds max size limit configuration; it is automatically rejected in http route by flask
+        if size > config.MAX_CONTENT_LENGTH:
+            return None
+
+        # secure the filename
+        name = secure_filename(file.filename)
+
+        # save file to default upload folder
+        path = os.path.join(config.APP_UPLOAD, name)
+        file.save(path)
 
         # store metadata in our database system and return the id
         return _insert(collection, [{
-            "_filename": filename,
-            "_filepath": filepath,  # store the temporary path
+            "_filename": name,
+            "_filepath": path,  # store the upload folder path
+            "_filesize": size  # store file size in metadata
         }])
     except Exception as ex:
         # rethrow exception
@@ -100,14 +113,9 @@ def _fdelete(collection: str, reference: str) -> bool:
         # retrieve filepath
         filepath = metadata.get("_filepath")
 
-        # delete file from local storage if it exists
+        # delete file from upload folder if it exists
         if filepath and os.path.exists(filepath):
             os.remove(filepath)
-
-            # also remove the temporary directory if it's empty
-            temp = os.path.dirname(filepath)
-            if not os.listdir(temp):
-                os.rmdir(temp)
 
         # delete metadata from database system
         return _delete(collection, {"_id": reference})

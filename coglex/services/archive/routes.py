@@ -53,6 +53,11 @@ def upload(collection: str):
         # rethrow exception
         return abort(500, description=str(ex))
 
+    # check if the file was uploaded successfully in case of file size was too large
+    # file entity size configuration is left to be handled by flask itself, since it will reject request by itself when file size exceeds MAX_CONTENT_LENGTH config
+    if not req:
+        return abort(413)
+
     # returning results
     return jsonify(req), 200
 
