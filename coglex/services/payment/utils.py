@@ -67,7 +67,7 @@ def _subscription(email: str, items: [dict], due: int = 7, metadata: dict = None
         raise ex
 
 
-def _verify(signature: str, payload: bytes, secret: str = config.STRIPE_PUBLISHABLE_KEY):
+def _pverify(signature: str, payload: bytes, secret: str = config.STRIPE_PUBLISHABLE_KEY):
     """
     verify the signature of a stripe webhook event
 
