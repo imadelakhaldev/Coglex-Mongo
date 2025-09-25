@@ -67,7 +67,7 @@ def _find(collection: str, query: dict = {}, keys: dict = {}) -> dict or list[di
         raise ex
 
 
-def _insert(collection: str, documents: list[dict]) -> list[str]:
+def _insert(collection: str, documents: list[dict]) -> str or list[str]:
     """
     insert multiple records into a specified mongodb collection
 
@@ -76,7 +76,7 @@ def _insert(collection: str, documents: list[dict]) -> list[str]:
         documents (list[dict]): list of records to be inserted into the collection
 
     returns:
-        list[str]: list of inserted ids of the records if successful
+        str or list[str]: inserted id of the record if single document, list of inserted ids if multiple documents
     """
     try:
         # generate _id for each document and prepare for insertion
