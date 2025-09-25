@@ -52,7 +52,7 @@ def _signup(_key: str, _password: str, document: dict = {}, collection: str = co
         raise ex
 
 
-def _signin(_key: str, _password: str, query: dict = {}, collection: str = config.MONGODB_AUTH_COLLECTION) -> dict or None:
+def _signin(_key: str, _password: str, query: dict = {}, collection: str = config.MONGODB_AUTH_COLLECTION) -> dict | None:
     """
     authenticates a user by validating their credentials
 
@@ -122,7 +122,7 @@ def _verify(_key: str, query: dict = {}, collection: str = config.MONGODB_AUTH_C
 
 
 
-def _signout(collection: str = config.MONGODB_AUTH_COLLECTION) -> bool:
+def _signout(collection: str = config.MONGODB_AUTH_COLLECTION) -> True:
     """
     signs out a user by removing their session data
 
@@ -154,7 +154,7 @@ def _refresh(_key: str, document: dict, collection: str = config.MONGODB_AUTH_CO
         document (dict): dictionary containing the fields to update and their new values
 
     returns:
-        int | None: number of documents updated if successful, none otherwise
+        int or None: number of documents updated if successful, none otherwise
     """
     try:
         # find user first to verify existence

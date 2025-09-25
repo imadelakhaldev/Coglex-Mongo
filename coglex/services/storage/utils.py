@@ -13,7 +13,7 @@ from bson import ObjectId
 from coglex import storage
 
 
-def _aggregate(collection: str, pipeline: list[dict]) -> list[dict] or None:
+def _aggregate(collection: str, pipeline: list[dict]) -> list[dict] | None:
     """
     perform aggregation operations on documents in a mongodb collection
 
@@ -39,7 +39,7 @@ def _aggregate(collection: str, pipeline: list[dict]) -> list[dict] or None:
         raise ex
 
 
-def _find(collection: str, query: dict = {}, keys: dict = {}) -> dict or list[dict] or None:
+def _find(collection: str, query: dict = {}, keys: dict = {}) -> dict | list[dict] | None:
     """
     find records in a mongodb collection that match a specific query
 
@@ -67,7 +67,7 @@ def _find(collection: str, query: dict = {}, keys: dict = {}) -> dict or list[di
         raise ex
 
 
-def _insert(collection: str, documents: list[dict]) -> str or list[str]:
+def _insert(collection: str, documents: list[dict]) -> str | list[str]:
     """
     insert multiple records into a specified mongodb collection
 
@@ -93,7 +93,7 @@ def _insert(collection: str, documents: list[dict]) -> str or list[str]:
         raise ex
 
 
-def _patch(collection: str, document: dict, query: dict = {}) -> int or None:
+def _patch(collection: str, document: dict, query: dict = {}) -> int | None:
     """
     update records in a mongodb collection that matches a specific query
 
@@ -120,7 +120,7 @@ def _patch(collection: str, document: dict, query: dict = {}) -> int or None:
         raise ex
 
 
-def _delete(collection: str, query: dict = {}) -> int or None:
+def _delete(collection: str, query: dict = {}) -> int | None:
     """
     delete records from a mongodb collection that matches a specific query
 
