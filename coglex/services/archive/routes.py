@@ -17,7 +17,7 @@ import config
 from coglex import protected
 
 # importing blueprint utilities used in current routing context
-from coglex.services.archive.utils import _upload, _download, _fdelete
+from coglex.services.archive.utils import _upload, _download, _destroy
 
 
 # blueprint instance
@@ -72,7 +72,7 @@ def download(reference: str):
     """
     try:
         # downloading file
-        filepath, filename = _download(reference)
+        filename, filepath = _download(reference)
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
@@ -89,7 +89,7 @@ def download(reference: str):
 @_archive.route("/service/archive/v1/delete/<reference>/", methods=["DELETE"])
 @_archive.route("/service/archive/v1/delete/<reference>", methods=["DELETE"])
 @protected()
-def fdelete(reference: str):
+def destroy(reference: str):
     """
     handle file deletion requests for a specified collection and reference
     
@@ -98,7 +98,7 @@ def fdelete(reference: str):
     """
     try:
         # deleting file
-        req = _fdelete(reference)
+        req = _destroy(reference)
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))

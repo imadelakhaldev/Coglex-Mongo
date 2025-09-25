@@ -7,7 +7,8 @@ operations utilizing mongodb client for file metadata management and local file 
 # standard imports
 import os
 
-# werkzeug utilities
+# werkzeug utilities and types
+from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
 
 # mongodb storage module
@@ -17,7 +18,7 @@ from coglex.services.storage.utils import _insert, _find, _delete
 import config
 
 
-def _upload(file, collection: str = config.MONGODB_ARCHIVE_COLLECTION) -> str or None:
+def _upload(file: FileStorage, collection: str = config.MONGODB_ARCHIVE_COLLECTION) -> str | None:
     """
     uploads a file and stores its metadata in the specified collection
 
@@ -57,7 +58,7 @@ def _upload(file, collection: str = config.MONGODB_ARCHIVE_COLLECTION) -> str or
         raise ex
 
 
-def _download(reference: str, collection: str = config.MONGODB_ARCHIVE_COLLECTION) -> tuple[str, str] or None:
+def _download(reference: str, collection: str = config.MONGODB_ARCHIVE_COLLECTION) -> tuple[str, str] | None:
     """
     retrieves a file path and filename based on its id from the specified collection
 
@@ -76,22 +77,21 @@ def _download(reference: str, collection: str = config.MONGODB_ARCHIVE_COLLECTIO
         if not metadata:
             return None, None
 
-        # assuming file_metadata is a dictionary and contains "_filepath" and "_filename" system reserved keys
+        # metadata is a dictionary and contains "_filepath" and "_filename" system reserved keys
         filepath = metadata.get("_filepath")
-        filename = metadata.get("_filename")
 
         # check if filepath exists
         if not filepath or not os.path.exists(filepath):
             return None, None
 
         # return filepath and filename
-        return filepath, filename
+        return metadata.get("_filename"), filepath
     except Exception as ex:
         # rethrow exception
         raise ex
 
 
-def _fdelete(reference: str, collection: str = config.MONGODB_ARCHIVE_COLLECTION) -> bool:
+def _destroy(reference: str, collection: str = config.MONGODB_ARCHIVE_COLLECTION) -> bool:
     """
     deletes a file and its metadata from the specified collection
 
