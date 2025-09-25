@@ -17,7 +17,7 @@ import config
 from coglex import protected
 
 # importing blueprint utilities used in current routing context
-from coglex.services.archive.utils import _upload, _download, _fdelete, _scan
+from coglex.services.archive.utils import _upload, _download, _fdelete
 
 
 # blueprint instance
@@ -109,33 +109,3 @@ def fdelete(reference: str):
 
     # return success
     return jsonify(True), 200
-
-
-# file virus scan route
-@_archive.route("/service/archive/v1/scan/", methods=["POST"])
-@_archive.route("/service/archive/v1/scan", methods=["POST"]) 
-@protected()
-def scan():
-    """
-    handle file virus scanning requests
-    """
-    # uploading file
-    if "file" not in request.files:
-        return abort(400)
-
-    # get the file from the request
-    file = request.files.get("file")
-
-    # check if the file is valid
-    if file.filename == "":
-        return abort(400)
-
-    try:
-        # start scanning the file
-        clean, _ = _scan(file)
-    except Exception as ex:
-        # rethrow exception
-        return abort(500, description=str(ex))
-
-    # returning results
-    return jsonify(clean), 200

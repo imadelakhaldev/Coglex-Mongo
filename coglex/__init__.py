@@ -7,6 +7,9 @@ this module handles the core initialization of the coglex framework, including:
 """
 
 
+# standard imports
+import os
+
 # python's built-in function wrappers
 from functools import wraps
 
@@ -37,6 +40,10 @@ application.config.from_mapping({
     "MAX_CONTENT_LENGTH": config.MAX_CONTENT_LENGTH,
     "SEND_FILE_MAX_AGE_DEFAULT": config.SEND_FILE_MAX_AGE,
 })
+
+# check and create upload folder if it doesn't exist
+if not os.path.exists(config.APP_UPLOAD):
+    os.makedirs(config.APP_UPLOAD)
 
 # connect to mongodb with credentials
 storage = MongoClient(config.MONGODB_URI).get_database(config.MONGODB_DATABASE)

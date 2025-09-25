@@ -6,8 +6,6 @@ operations utilizing mongodb client for file metadata management and local file 
 
 # standard imports
 import os
-import tempfile
-import subprocess
 
 # werkzeug utilities
 from werkzeug.utils import secure_filename
@@ -123,50 +121,4 @@ def _fdelete(reference: str, collection: str = config.MONGODB_ARCHIVE_COLLECTION
         return _delete(collection, {"_id": reference})
     except Exception as ex:
         # rethrow exception
-        raise ex
-
-
-def _scan(file) -> tuple[bool, str]:
-    """
-    scans a file for potential viruses using ClamAV antivirus engine, refer to README documentation for installation details
-
-    args:
-        file: file object from flask request
-
-    returns:
-        tuple: (clean: bool, raw: str)
-            - clean: true if file is clean, false if infected
-            - raw: scan result message or error description
-    """
-    try:
-        with tempfile.NamedTemporaryFile(delete=False) as tmp:
-            temporary = tmp.name
-            # save uploaded file to temporary location
-            file.save(temporary)
-
-        try:
-            # run clamscan cli
-            execution = subprocess.run(
-                ["clamscan", "--no-summary", temporary],
-                capture_output=True, check=False,
-                text=True
-            )
-
-            # parsing execution output
-            stdout = execution.stdout.strip()
-
-            # file is clean
-            if "OK" in stdout:
-                return True, str(stdout)
-
-            # threat signature has been found
-            if "FOUND" in stdout:
-                return False, str(stdout)
-
-            # analysis failed
-            return False, str(stdout)
-        finally:
-            # clean up temporary file
-            os.remove(temporary)
-    except Exception as ex:
         raise ex
