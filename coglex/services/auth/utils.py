@@ -122,7 +122,7 @@ def _verify(_key: str, query: dict = {}, collection: str = config.MONGODB_AUTH_C
 
 
 
-def _signout(collection: str = config.MONGODB_AUTH_COLLECTION) -> True:
+def _signout(collection: str = config.MONGODB_AUTH_COLLECTION) -> bool:
     """
     signs out a user by removing their session data
 
@@ -130,15 +130,18 @@ def _signout(collection: str = config.MONGODB_AUTH_COLLECTION) -> True:
         collection (str): the name of the collection to remove session data from
 
     returns:
-        bool: true if signout is successful, exception otherwise
+        bool: true if signout is successful, false if collection not in session, exception otherwise
     """
     try:
         # signing out user, remove user's session
         if collection in session:
             session.pop(collection, None)
 
-        # success return
-        return True
+            # success return
+            return True
+
+        # if collection not in session, return false
+        return False
     except Exception as ex:
         # rethrow exception
         raise ex
