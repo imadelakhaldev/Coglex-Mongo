@@ -100,19 +100,6 @@ def _session():
         return abort(500, description=str(ex))
 
 
-@_auth.route("/service/auth/v1/signout/", methods=["GET"])
-@_auth.route("/service/auth/v1/signout", methods=["GET"])
-def signout():
-    """
-    handle user signout / session termination requests for a specified collection
-    """
-    try:
-        return jsonify(_signout()), 200
-    except Exception as ex:
-        # rethrow exception
-        return abort(500, description=str(ex))
-
-
 @_auth.route("/service/auth/v1/refresh/", methods=["PATCH"])
 @_auth.route("/service/auth/v1/refresh", methods=["PATCH"])
 @protected()
@@ -140,3 +127,16 @@ def refresh():
 
     # returning results
     return jsonify(req), 200
+
+
+@_auth.route("/service/auth/v1/signout/", methods=["GET"])
+@_auth.route("/service/auth/v1/signout", methods=["GET"])
+def signout():
+    """
+    handle user signout / session termination requests for a specified collection
+    """
+    try:
+        return jsonify(_signout()), 200
+    except Exception as ex:
+        # rethrow exception
+        return abort(500, description=str(ex))

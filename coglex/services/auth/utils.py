@@ -82,66 +82,11 @@ def _signin(_key: str, _password: str, query: dict = {}, collection: str = confi
         if not pcheck(_password, authentication.get("_password")):
             return None
 
-        # saving signin query for later user checking (e.g., active=True)
-        authentication["_query"] = query
-
         # updating flask session for usage across framework
-        session.update({collection: authentication})
+        session.update({collection: (_key, query)})
 
         # returning the authentication document (user)
         return authentication
-    except Exception as ex:
-        # rethrow exception
-        raise ex
-
-
-def _verify(_key: str, query: dict = {}, collection: str = config.MONGODB_AUTH_COLLECTION) -> dict | None:
-    """
-    verifies if a user exists and matches additional query criteria
-
-    args:
-        collection (str): name of the collection to verify against
-        _key (str): unique identifier for the user (e.g., email or username)
-        query (dict) (optional): additional query parameters to filter user documents
-
-    returns:
-        dict | None: user document if user exists and matches criteria, None otherwise
-    """
-    try:
-        # find user document
-        authentication = _find(collection, {"_key": _key, **query})
-
-        # if no user found or multiple users found (shouldn't happen with unique _key)
-        if not authentication or isinstance(authentication, list):
-            return None
-
-        # return authentication document
-        return authentication
-    except Exception as ex:
-        raise ex
-
-
-
-def _signout(collection: str = config.MONGODB_AUTH_COLLECTION) -> bool:
-    """
-    signs out a user by removing their session data
-
-    args:
-        collection (str): the name of the collection to remove session data from
-
-    returns:
-        bool: true if signout is successful, false if collection not in session, exception otherwise
-    """
-    try:
-        # signing out user, remove user's session
-        if collection in session:
-            session.pop(collection, None)
-
-            # success return
-            return True
-
-        # if collection not in session, return false
-        return False
     except Exception as ex:
         # rethrow exception
         raise ex
@@ -171,4 +116,55 @@ def _refresh(_key: str, document: dict, collection: str = config.MONGODB_AUTH_CO
         # update user document
         return _patch(collection, {"$set": document}, {"_key": _key})
     except Exception as ex:
+        raise ex
+
+
+def _verify(_key: str, query: dict = {}, collection: str = config.MONGODB_AUTH_COLLECTION) -> dict | None:
+    """
+    verifies if a user exists and matches additional query criteria
+
+    args:
+        collection (str): name of the collection to verify against
+        _key (str): unique identifier for the user (e.g., email or username)
+        query (dict) (optional): additional query parameters to filter user documents
+
+    returns:
+        dict | None: user document if user exists and matches criteria, None otherwise
+    """
+    try:
+        # find user document
+        authentication = _find(collection, {"_key": _key, **query})
+
+        # if no user found or multiple users found (shouldn't happen with unique _key)
+        if not authentication or isinstance(authentication, list):
+            return None
+
+        # return authentication document
+        return authentication
+    except Exception as ex:
+        raise ex
+
+
+def _signout(collection: str = config.MONGODB_AUTH_COLLECTION) -> bool:
+    """
+    signs out a user by removing their session data
+
+    args:
+        collection (str): the name of the collection to remove session data from
+
+    returns:
+        bool: true if signout is successful, false if collection not in session, exception otherwise
+    """
+    try:
+        # signing out user, remove user's session
+        if collection in session:
+            session.pop(collection, None)
+
+            # success return
+            return True
+
+        # if collection not in session, return false
+        return False
+    except Exception as ex:
+        # rethrow exception
         raise ex
