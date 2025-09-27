@@ -24,8 +24,8 @@ from coglex.services.archive.utils import _upload, _download, _destroy, _list
 _archive = Blueprint("_archive", config.APP_IMPORT)
 
 
-@_archive.route("/service/archive/v1/list/", methods=["GET"])
-@_archive.route("/service/archive/v1/list", methods=["GET"])
+@_archive.route("/service/archive/v1/", methods=["GET"])
+@_archive.route("/service/archive/v1", methods=["GET"])
 @protected()
 def directory():
     """
@@ -46,8 +46,8 @@ def directory():
     return jsonify(req), 200
 
 
-@_archive.route("/service/archive/v1/upload/", methods=["POST"])
-@_archive.route("/service/archive/v1/upload", methods=["POST"])
+@_archive.route("/service/archive/v1/", methods=["POST"])
+@_archive.route("/service/archive/v1", methods=["POST"])
 @protected()
 def upload():
     """
@@ -80,8 +80,8 @@ def upload():
     return jsonify(req), 200
 
 
-@_archive.route("/service/archive/v1/download/<reference>/", methods=["GET"])
-@_archive.route("/service/archive/v1/download/<reference>", methods=["GET"])
+@_archive.route("/service/archive/v1/<reference>/", methods=["GET"])
+@_archive.route("/service/archive/v1/<reference>", methods=["GET"])
 @protected()
 def download(reference: str):
     """
@@ -105,8 +105,8 @@ def download(reference: str):
     return send_file(filepath, as_attachment=True, download_name=filename)
 
 
-@_archive.route("/service/archive/v1/delete/<reference>/", methods=["DELETE"])
-@_archive.route("/service/archive/v1/delete/<reference>", methods=["DELETE"])
+@_archive.route("/service/archive/v1/<reference>/", methods=["DELETE"])
+@_archive.route("/service/archive/v1/<reference>", methods=["DELETE"])
 @protected()
 def destroy(reference: str):
     """
