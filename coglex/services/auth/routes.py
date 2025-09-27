@@ -110,7 +110,7 @@ def retrieve(_key: str):
     """
     try:
         # retrieving user data
-        req = _retrieve(_key)
+        req = _retrieve(_key, request.json.get("query"))
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))

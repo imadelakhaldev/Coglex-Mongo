@@ -72,21 +72,21 @@ def _download(reference: str, collection: str = config.MONGODB_ARCHIVE_COLLECTIO
     """
     try:
         # retrieve file metadata
-        metadata = _find(collection, {"_id": reference})
+        document = _find(collection, {"_id": reference})
 
         # check if metadata exists
-        if not metadata:
+        if not document:
             return None, None
 
         # metadata is a dictionary and contains "_filepath" and "_filename" system reserved keys
-        filepath = metadata.get("_filepath")
+        filepath = document.get("_filepath")
 
         # check if filepath exists
         if not filepath or not os.path.exists(filepath):
             return None, None
 
         # return filepath and filename
-        return metadata.get("_filename"), filepath
+        return document.get("_filename"), filepath
     except Exception as ex:
         # rethrow exception
         raise ex
@@ -105,14 +105,14 @@ def _destroy(reference: str, collection: str = config.MONGODB_ARCHIVE_COLLECTION
     """
     try:
         # retrieve file metadata
-        metadata = _find(collection, {"_id": reference})
+        document = _find(collection, {"_id": reference})
 
         # check if metadata exists
-        if not metadata:
+        if not document:
             return False
 
         # retrieve filepath
-        filepath = metadata.get("_filepath")
+        filepath = document.get("_filepath")
 
         # delete file from upload folder if it exists
         if filepath and os.path.exists(filepath):
