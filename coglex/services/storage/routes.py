@@ -2,16 +2,6 @@
 this module provides routing rules and endpoints for the database storage service
 it handles http requests for crud operations on documents
 in collections, with support for query parameters and document keys
-
-Routes:
-    GET /service/storage/v1/<collection>/ - retrieve multiple documents
-    GET /service/storage/v1/<collection>/<key>/ - retrieve a specific document
-    POST /service/storage/v1/<collection>/ - insert new documents
-    PATCH /service/storage/v1/<collection>/<key>/ - update a specific document
-    PATCH /service/storage/v1/<collection>/ - update multiple documents
-    DELETE /service/storage/v1/<collection>/<key>/ - delete a specific document
-    DELETE /service/storage/v1/<collection>/ - delete multiple documents
-    POST /service/storage/v1/<collection>/aggregate/ - perform aggregation operations
 """
 
 

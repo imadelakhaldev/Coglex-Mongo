@@ -92,6 +92,32 @@ def _signin(_key: str, _password: str, query: dict = {}, collection: str = confi
         raise ex
 
 
+def _retrieve(_key: str, query: dict = {}, collection: str = config.MONGODB_AUTH_COLLECTION) -> dict | None:
+    """
+    verifies if a user exists and matches additional query criteria
+
+    args:
+        collection (str): name of the collection to verify against
+        _key (str): unique identifier for the user (e.g., email or username)
+        query (dict) (optional): additional query parameters to filter user documents
+
+    returns:
+        dict | None: user document if user exists and matches criteria, None otherwise
+    """
+    try:
+        # find user document
+        authentication = _find(collection, {"_key": _key, **query})
+
+        # if no user found or multiple users found (shouldn't happen with unique _key)
+        if not authentication or isinstance(authentication, list):
+            return None
+
+        # return authentication document
+        return authentication
+    except Exception as ex:
+        raise ex
+
+
 def _refresh(_key: str, document: dict, collection: str = config.MONGODB_AUTH_COLLECTION) -> int | None:
     """
     updates user information in the specified collection
@@ -115,32 +141,6 @@ def _refresh(_key: str, document: dict, collection: str = config.MONGODB_AUTH_CO
 
         # update user document
         return _patch(collection, {"$set": document}, {"_key": _key})
-    except Exception as ex:
-        raise ex
-
-
-def _retrieve(_key: str, query: dict = {}, collection: str = config.MONGODB_AUTH_COLLECTION) -> dict | None:
-    """
-    verifies if a user exists and matches additional query criteria
-
-    args:
-        collection (str): name of the collection to verify against
-        _key (str): unique identifier for the user (e.g., email or username)
-        query (dict) (optional): additional query parameters to filter user documents
-
-    returns:
-        dict | None: user document if user exists and matches criteria, None otherwise
-    """
-    try:
-        # find user document
-        authentication = _find(collection, {"_key": _key, **query})
-
-        # if no user found or multiple users found (shouldn't happen with unique _key)
-        if not authentication or isinstance(authentication, list):
-            return None
-
-        # return authentication document
-        return authentication
     except Exception as ex:
         raise ex
 

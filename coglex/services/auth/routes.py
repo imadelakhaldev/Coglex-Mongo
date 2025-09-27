@@ -98,12 +98,37 @@ def signin():
     return jsonify(req), 200
 
 
+@_auth.route("/service/auth/v1/retrieve/<_key>/", methods=["GET"])
+@_auth.route("/service/auth/v1/retrieve/<_key>", methods=["GET"])
+@protected()
+def retrieve(_key: str):
+    """
+    retrieve user profile data for the authenticated user
+
+    returns the stored profile information for the user identified by the
+    provided key, requires an active session and valid authentication
+    """
+    try:
+        # retrieving user data
+        req = _retrieve(_key)
+    except Exception as ex:
+        # rethrow exception
+        return abort(500, description=str(ex))
+
+    # if no user found, return error
+    if not req:
+        return abort(404)
+
+    # returning results
+    return jsonify(req), 200
+
+
 @_auth.route("/service/auth/v1/refresh/<_key>/", methods=["PATCH"])
 @_auth.route("/service/auth/v1/refresh/<_key>", methods=["PATCH"])
 @protected()
 def refresh(_key: str):
     """
-    refresh or update an existing user's profile data.
+    refresh or update an existing user's profile data
 
     expects json payload with:
     - document: updated user data to merge into the profile
@@ -157,28 +182,3 @@ def signout():
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
-
-
-@_auth.route("/service/auth/v1/retrieve/<_key>/", methods=["GET"])
-@_auth.route("/service/auth/v1/retrieve/<_key>", methods=["GET"])
-@protected()
-def retrieve(_key: str):
-    """
-    retrieve user profile data for the authenticated user
-
-    returns the stored profile information for the user identified by the
-    provided key, requires an active session and valid authentication
-    """
-    try:
-        # retrieving user data
-        req = _retrieve(_key)
-    except Exception as ex:
-        # rethrow exception
-        return abort(500, description=str(ex))
-
-    # if no user found, return error
-    if not req:
-        return abort(404)
-
-    # returning results
-    return jsonify(req), 200
