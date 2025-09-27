@@ -34,6 +34,11 @@ _auth = Blueprint("_auth", config.APP_IMPORT)
 def signup():
     """
     handle user signup requests for a specified collection
+
+    expects json payload with:
+    - _key: unique identifier for the user
+    - _password: user password
+    - document: optional additional user data
     """
     # get document from request body
     _key, _password = request.json.get("_key"), request.json.get("_password")
@@ -62,7 +67,14 @@ def signup():
 @protected()
 def signin():
     """
-    handle user signin/authentication requests for a specified collection
+    authenticate a user against the auth collection.
+    
+    expects json payload with:
+    - _key: unique identifier for the user
+    - _password: user password
+    - query: optional additional filter criteria
+    
+    returns user data and session token on success.
     """
     # get document from request body
     _key, _password = request.json.get("_key"), request.json.get("_password")
@@ -86,18 +98,23 @@ def signin():
     return jsonify(req), 200
 
 
-@_auth.route("/service/auth/v1/refresh/", methods=["PATCH"])
-@_auth.route("/service/auth/v1/refresh", methods=["PATCH"])
+@_auth.route("/service/auth/v1/refresh/<_key>/", methods=["PATCH"])
+@_auth.route("/service/auth/v1/refresh/<_key>", methods=["PATCH"])
 @protected()
-def refresh():
+def refresh(_key: str):
     """
-    handle user data refresh/update requests for a specified collection
+    refresh or update an existing user's profile data.
+
+    expects json payload with:
+    - document: updated user data to merge into the profile
+
+    returns the updated user document on success.
     """
     # get document from request body
-    _key, document = request.json.get("_key"), request.json.get("document")
+    document = request.json.get("document")
 
     # checking required parameters
-    if not _key or not document:
+    if not document:
         return abort(400)
 
     try:
