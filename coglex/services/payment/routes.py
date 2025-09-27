@@ -3,12 +3,13 @@ Payment service routes for handling Stripe payment intents and webhooks.
 Provides endpoints for creating payment intents and processing Stripe webhook events.
 """
 
+
 # importing flask's built-in modules
 from flask import Blueprint, request, jsonify, abort
 
 # importing blueprint utilities used in current routing context
 from coglex import protected
-from coglex.services.payment.utils import _checkout, _subscription
+from coglex.services.payment.utils import _session, _subscription
 
 
 # blueprint instance
@@ -20,37 +21,30 @@ _payment = Blueprint("_payment", __name__)
 @protected()
 def checkout():
     """
-    create a stripe checkout session for one-time payments
-    
-    requires the following json parameters in the request:
+    create a Stripe Checkout session for one-time or subscription payments
+
+    - mode: either "payment" (one-time) or "subscription"
     - success_url: url to redirect after successful payment
     - cancel_url: url to redirect if payment is cancelled
     - email: customer email address
     - linedata: list of items to purchase
-    
+
     optional parameters:
     - metadata: additional metadata dictionary (default: {})
-    
+
     returns:
-        json response with checkout session details
-        
-    raises:
-        400: if required parameters are missing
-        500: if checkout creation fails
+        response with Checkout session details
     """
+    # retreiving required parameters from request json
+    mode, success_url, cancel_url, email, linedata = request.json.get("mode"), request.json.get("success_url"), request.json.get("cancel_url"), request.json.get("email"), request.json.get("linedata")
+
     # checking required paramters
-    if not request.json.get("success_url") or not request.json.get("cancel_url") or not request.json.get("email") or not request.json.get("linedata"):
+    if not mode or not success_url or not cancel_url or not email or not linedata:
         return abort(400)
 
     try:
         # creating payment checkout
-        req = _checkout(
-            success_url=request.json.get("success_url"),
-            cancel_url=request.json.get("cancel_url"),
-            email=request.json.get("email"),
-            linedata=request.json.get("linedata"),
-            metadata=request.json.get("metadata")
-        )
+        req = _session(mode=mode, success_url=success_url, cancel_url=cancel_url, email=email, linedata=linedata, metadata=request.json.get("metadata") or {})
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
@@ -76,22 +70,21 @@ def subscription():
     
     returns:
         json response with subscription details
-        
-    raises:
-        400: if required parameters are missing
-        500: if subscription creation fails
     """
+    # retreiving required parameters from request json
+    email, linedata = request.json.get("email"), request.json.get("linedata")
+
     # checking required paramters
-    if not request.json.get("email") or not request.json.get("items"):
+    if not email or not linedata:
         return abort(400)
 
     try:
         # creating payment subscription
         req = _subscription(
-            email=request.json.get("email"),
-            items=request.json.get("items"),
+            email=email,
+            linedata=linedata,
             due=request.json.get("due"),
-            metadata=request.json.get("metadata")
+            metadata=request.json.get("metadata") or {}
         )
     except Exception as ex:
         # rethrow exception

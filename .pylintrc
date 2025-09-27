@@ -1,5 +1,5 @@
 [MESSAGES CONTROL]
-disable=broad-exception-caught,line-too-long,dangerous-default-value,wrong-import-position,import-outside-toplevel
+disable=broad-exception-caught,line-too-long,dangerous-default-value,wrong-import-position,import-outside-toplevel,too-many-positional-arguments,too-many-arguments
 
 [FORMAT]
-max-line-length=128
+max-line-length=156
