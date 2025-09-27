@@ -21,7 +21,7 @@ import config
 
 # importing blueprint utilities used in current routing context
 from coglex import protected
-from coglex.services.auth.utils import _signup, _signin, _signout, _refresh
+from coglex.services.auth.utils import _signup, _signin, _signout, _refresh, _retrieve
 
 
 # blueprint instance
@@ -86,20 +86,6 @@ def signin():
     return jsonify(req), 200
 
 
-@_auth.route("/service/auth/v1/session/", methods=["GET"])
-@_auth.route("/service/auth/v1/session", methods=["GET"])
-@protected()
-def _session():
-    """
-    retrieve the current session data for a specified collection
-    """
-    try:
-        return jsonify(session.get(config.MONGODB_AUTH_COLLECTION)), 200
-    except Exception as ex:
-        # rethrow exception
-        return abort(500, description=str(ex))
-
-
 @_auth.route("/service/auth/v1/refresh/", methods=["PATCH"])
 @_auth.route("/service/auth/v1/refresh", methods=["PATCH"])
 @protected()
@@ -129,6 +115,20 @@ def refresh():
     return jsonify(req), 200
 
 
+@_auth.route("/service/auth/v1/session/", methods=["GET"])
+@_auth.route("/service/auth/v1/session", methods=["GET"])
+@protected()
+def _session():
+    """
+    retrieve the current session data for a specified collection
+    """
+    try:
+        return jsonify(session.get(config.MONGODB_AUTH_COLLECTION)), 200
+    except Exception as ex:
+        # rethrow exception
+        return abort(500, description=str(ex))
+
+
 @_auth.route("/service/auth/v1/signout/", methods=["GET"])
 @_auth.route("/service/auth/v1/signout", methods=["GET"])
 def signout():
@@ -140,3 +140,28 @@ def signout():
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
+
+
+@_auth.route("/service/auth/v1/retrieve/<_key>/", methods=["GET"])
+@_auth.route("/service/auth/v1/retrieve/<_key>", methods=["GET"])
+@protected()
+def retrieve(_key: str):
+    """
+    retrieve user profile data for the authenticated user
+
+    returns the stored profile information for the user identified by the
+    provided key, requires an active session and valid authentication
+    """
+    try:
+        # retrieving user data
+        req = _retrieve(_key)
+    except Exception as ex:
+        # rethrow exception
+        return abort(500, description=str(ex))
+
+    # if no user found, return error
+    if not req:
+        return abort(404)
+
+    # returning results
+    return jsonify(req), 200

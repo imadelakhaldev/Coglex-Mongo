@@ -101,13 +101,13 @@ def authenticated(collection: str = config.MONGODB_AUTH_COLLECTION):
                 return abort(401)
 
             # importing generic utilities
-            from coglex.services.auth.utils import _verify
+            from coglex.services.auth.utils import _retrieve
 
             # retrieve key and query used for login, for verification
             _key, query = session.get(collection, (None, None))
 
             # authenticate/ verify user
-            authentication = _verify(_key, query, collection)
+            authentication = _retrieve(_key, query, collection)
 
             # if user doesn't exist or is inactive to the given query, return 401
             if not authentication:

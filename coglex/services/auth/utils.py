@@ -119,7 +119,7 @@ def _refresh(_key: str, document: dict, collection: str = config.MONGODB_AUTH_CO
         raise ex
 
 
-def _verify(_key: str, query: dict = {}, collection: str = config.MONGODB_AUTH_COLLECTION) -> dict | None:
+def _retrieve(_key: str, query: dict = {}, collection: str = config.MONGODB_AUTH_COLLECTION) -> dict | None:
     """
     verifies if a user exists and matches additional query criteria
 
