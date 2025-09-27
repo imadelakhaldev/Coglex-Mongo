@@ -17,14 +17,35 @@ import config
 from coglex import protected
 
 # importing blueprint utilities used in current routing context
-from coglex.services.archive.utils import _upload, _download, _destroy
+from coglex.services.archive.utils import _upload, _download, _destroy, _list
 
 
 # blueprint instance
 _archive = Blueprint("_archive", config.APP_IMPORT)
 
 
-# file upload route
+@_archive.route("/service/archive/v1/list/", methods=["GET"])
+@_archive.route("/service/archive/v1/list", methods=["GET"])
+@protected()
+def directory():
+    """
+    list all uploaded files
+    """
+    try:
+        # listing files
+        req = _list()
+    except Exception as ex:
+        # rethrow exception
+        return abort(500, description=str(ex))
+
+    # if no documents found
+    if not req:
+        return abort(404)
+
+    # returning results
+    return jsonify(req), 200
+
+
 @_archive.route("/service/archive/v1/upload/", methods=["POST"])
 @_archive.route("/service/archive/v1/upload", methods=["POST"])
 @protected()
@@ -59,7 +80,6 @@ def upload():
     return jsonify(req), 200
 
 
-# file download route
 @_archive.route("/service/archive/v1/download/<reference>/", methods=["GET"])
 @_archive.route("/service/archive/v1/download/<reference>", methods=["GET"])
 @protected()
@@ -85,7 +105,6 @@ def download(reference: str):
     return send_file(filepath, as_attachment=True, download_name=filename)
 
 
-# file deletion route
 @_archive.route("/service/archive/v1/delete/<reference>/", methods=["DELETE"])
 @_archive.route("/service/archive/v1/delete/<reference>", methods=["DELETE"])
 @protected()

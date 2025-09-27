@@ -19,6 +19,32 @@ from coglex.services.storage.utils import _insert, _find, _delete
 import config
 
 
+def _list(query: dict = {}, collection: str = config.MONGODB_ARCHIVE_COLLECTION) -> list[dict] | None:
+    """
+    retrieves metadata of all uploaded files from the specified collection
+
+    args:
+        query (dict): optional filter to apply when retrieving documents
+        collection (str): name of the collection to retrieve from
+
+    returns:
+        list[dict] | None: a list of dictionaries containing file metadata for each uploaded file, or None if no documents found
+    """
+    try:
+        # retrieve all documents from the collection
+        documents = _find(collection, query=query)
+
+        # if no documents found
+        if not documents:
+            return None
+
+        # return list of file metadata
+        return documents
+    except Exception as ex:
+        # rethrow exception
+        raise ex
+
+
 def _upload(file: FileStorage, collection: str = config.MONGODB_ARCHIVE_COLLECTION) -> str | None:
     """
     uploads a file and stores its metadata in the specified collection

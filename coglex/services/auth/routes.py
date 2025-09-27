@@ -14,7 +14,7 @@ with the underlying authentication services
 
 
 # importing flask's built-in modules
-from flask import Blueprint, request, session, jsonify, abort
+from flask import Blueprint, request, jsonify, abort
 
 # importing base config parameters, and generic utilities
 import config
@@ -155,20 +155,6 @@ def refresh(_key: str):
 
     # returning results
     return jsonify(req), 200
-
-
-@_auth.route("/service/auth/v1/session/", methods=["GET"])
-@_auth.route("/service/auth/v1/session", methods=["GET"])
-@protected()
-def _session():
-    """
-    retrieve the current session data for a specified collection
-    """
-    try:
-        return jsonify(session.get(config.MONGODB_AUTH_COLLECTION)), 200
-    except Exception as ex:
-        # rethrow exception
-        return abort(500, description=str(ex))
 
 
 @_auth.route("/service/auth/v1/signout/", methods=["GET"])
