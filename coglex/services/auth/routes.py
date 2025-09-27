@@ -98,8 +98,8 @@ def signin():
     return jsonify(req), 200
 
 
-@_auth.route("/service/auth/v1/retrieve/<_key>/", methods=["GET"])
-@_auth.route("/service/auth/v1/retrieve/<_key>", methods=["GET"])
+@_auth.route("/service/auth/v1/<_key>/", methods=["GET"])
+@_auth.route("/service/auth/v1/<_key>", methods=["GET"])
 @protected()
 def retrieve(_key: str):
     """
@@ -123,8 +123,8 @@ def retrieve(_key: str):
     return jsonify(req), 200
 
 
-@_auth.route("/service/auth/v1/refresh/<_key>/", methods=["PATCH"])
-@_auth.route("/service/auth/v1/refresh/<_key>", methods=["PATCH"])
+@_auth.route("/service/auth/v1/<_key>/", methods=["PATCH"])
+@_auth.route("/service/auth/v1/<_key>", methods=["PATCH"])
 @protected()
 def refresh(_key: str):
     """
