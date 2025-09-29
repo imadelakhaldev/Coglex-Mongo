@@ -85,7 +85,7 @@ def _upload(file: FileStorage, collection: str = config.MONGODB_ARCHIVE_COLLECTI
         raise ex
 
 
-def _download(reference: str, collection: str = config.MONGODB_ARCHIVE_COLLECTION) -> tuple[str, str] | None:
+def _download(reference: str, collection: str = config.MONGODB_ARCHIVE_COLLECTION) -> tuple[str | None, str | None]:
     """
     retrieves a file path and filename based on its id from the specified collection
 
@@ -94,7 +94,7 @@ def _download(reference: str, collection: str = config.MONGODB_ARCHIVE_COLLECTIO
         reference (str): the id of the file to download
 
     returns:
-        tuple: a tuple containing the file path and filename upon successful retrieval
+        tuple: a tuple containing the file path and filename upon successful retrieval, or (None, None) if file not found
     """
     try:
         # retrieve file metadata

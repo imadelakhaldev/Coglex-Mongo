@@ -80,8 +80,10 @@ def _insert(collection: str, documents: list[dict]) -> str | list[str]:
     """
     try:
         # generate _id for each document and prepare for insertion
-        # insert documents with generated IDs
-        execution = storage.get_collection(collection).insert_many([{**document, **{"_id": str(ObjectId())}} for document in documents])
+        documents = [{**document, **{"_id": str(ObjectId())}} for document in documents]
+
+        # insert documents with generated ids
+        execution = storage.get_collection(collection).insert_many(documents)
 
         # convert ObjectIds to strings
         references = [str(_id) for _id in execution.inserted_ids]

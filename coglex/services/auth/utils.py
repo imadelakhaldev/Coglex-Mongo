@@ -38,15 +38,11 @@ def _signup(_key: str, _password: str, document: dict = {}, collection: str = co
         if _find(collection, {"_key": _key}):
             return None
 
-        # remove duplicated fields in document
-        document.pop("_key", None)
-        document.pop("_password", None)
-
         # hash the password before storing
         _password = phash(_password)
 
         # inject _key and _password to document and create new user
-        return _insert(collection, [{"_key": _key, "_password": _password, **document}])
+        return _insert(collection, [{"_key": _key, "_password": _password, "_document": document}])
     except Exception as ex:
         # rethrow exception
         raise ex
@@ -67,7 +63,7 @@ def _signin(_key: str, _password: str, query: dict = {}, collection: str = confi
     """
     try:
         # find user without password in query
-        authentication = _find(collection, {"_key": _key, **query})
+        authentication = _find(collection, {"_key": _key, "_document": query})
 
         # if no user found, return none
         if not authentication:
@@ -106,7 +102,7 @@ def _retrieve(_key: str, query: dict = {}, collection: str = config.MONGODB_AUTH
     """
     try:
         # find user document
-        authentication = _find(collection, {"_key": _key, **query})
+        authentication = _find(collection, {"_key": _key, "_document": query})
 
         # if no user found or multiple users found (shouldn't happen with unique _key)
         if not authentication or isinstance(authentication, list):
@@ -135,12 +131,38 @@ def _refresh(_key: str, document: dict, collection: str = config.MONGODB_AUTH_CO
         if not _find(collection, {"_key": _key}):
             return None
 
-        # handle password updates separately if included
-        if "_password" in document:
-            document["_password"] = phash(document.get("_password"))
+        # prepare the update document
+        construction = {}
+
+        # reconstruct given document to hash password if exists
+        for operation, fields in document.items():
+            if operation == "$set" and isinstance(fields, dict) and "_password" in fields:
+                # clone and hash the password inside $set
+                fields = fields.copy()
+                fields["_password"] = phash(fields["_password"])
+
+            # add operation to construction
+            construction[operation] = fields
 
         # update user document
-        return _patch(collection, {"$set": document}, {"_key": _key})
+        return _patch(collection, construction, {"_key": _key})
+    except Exception as ex:
+        raise ex
+
+
+def _session(collection: str = config.MONGODB_AUTH_COLLECTION) -> tuple[str | None, dict | None]:
+    """
+    retrieves the user session from flask session
+
+    args:
+        collection (str): the name of the collection to retrieve session data from
+
+    returns:
+        tuple: a tuple containing the user key and query dictionary if session exists, or (None, None) if no session found
+    """
+    try:
+        # retrieve user session from flask session
+        return session.get(collection, (None, None))
     except Exception as ex:
         raise ex
 

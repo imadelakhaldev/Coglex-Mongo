@@ -33,7 +33,7 @@ def directory():
     """
     try:
         # listing files
-        req = _list()
+        req = _list(query=request.json.get("query"))
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))

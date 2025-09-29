@@ -21,7 +21,7 @@ import config
 
 # importing blueprint utilities used in current routing context
 from coglex import protected
-from coglex.services.auth.utils import _signup, _signin, _signout, _refresh, _retrieve
+from coglex.services.auth.utils import _signup, _signin, _retrieve, _refresh, _session, _signout
 
 
 # blueprint instance
@@ -155,6 +155,21 @@ def refresh(_key: str):
 
     # returning results
     return jsonify(req), 200
+
+
+@_auth.route("/service/auth/v1/session/", methods=["GET"])
+@_auth.route("/service/auth/v1/session", methods=["GET"])
+def session():
+    """
+    retrieve the current user session data
+
+    returns the user session data if available, otherwise returns (None, None)
+    """
+    try:
+        return jsonify(_session()), 200
+    except Exception as ex:
+        # rethrow exception
+        return abort(500, description=str(ex))
 
 
 @_auth.route("/service/auth/v1/signout/", methods=["GET"])
