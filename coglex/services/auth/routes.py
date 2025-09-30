@@ -98,8 +98,8 @@ def signin():
     return jsonify(req), 200
 
 
-@_auth.route("/service/auth/v1/<_key>/", methods=["GET"])
-@_auth.route("/service/auth/v1/<_key>", methods=["GET"])
+@_auth.route("/service/auth/v1/retrieve/", methods=["GET"])
+@_auth.route("/service/auth/v1/retrieve", methods=["GET"])
 @protected()
 def retrieve(_key: str):
     """
@@ -110,7 +110,7 @@ def retrieve(_key: str):
     """
     try:
         # retrieving user data
-        req = _retrieve(_key, request.json.get("query"))
+        req = _retrieve()
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
@@ -123,8 +123,8 @@ def retrieve(_key: str):
     return jsonify(req), 200
 
 
-@_auth.route("/service/auth/v1/<_key>/", methods=["PATCH"])
-@_auth.route("/service/auth/v1/<_key>", methods=["PATCH"])
+@_auth.route("/service/auth/v1/refresh/", methods=["PATCH"])
+@_auth.route("/service/auth/v1/refresh", methods=["PATCH"])
 @protected()
 def refresh(_key: str):
     """
@@ -144,7 +144,7 @@ def refresh(_key: str):
 
     try:
         # refreshing user data
-        req = _refresh(_key, document)
+        req = _refresh(document)
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))

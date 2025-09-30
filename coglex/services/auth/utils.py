@@ -42,7 +42,7 @@ def _signup(_key: str, _password: str, document: dict = {}, collection: str = co
         _password = phash(_password)
 
         # inject _key and _password to document and create new user
-        return _insert(collection, [{"_key": _key, "_password": _password, "_document": document}])
+        return _insert(collection, [{"_key": _key, "_password": _password, "document": document}])
     except Exception as ex:
         # rethrow exception
         raise ex
@@ -63,7 +63,7 @@ def _signin(_key: str, _password: str, query: dict = {}, collection: str = confi
     """
     try:
         # find user without password in query
-        authentication = _find(collection, {"_key": _key, "_document": query})
+        authentication = _find(collection, {"_key": _key, "document": query})
 
         # if no user found, return none
         if not authentication:
@@ -88,21 +88,26 @@ def _signin(_key: str, _password: str, query: dict = {}, collection: str = confi
         raise ex
 
 
-def _retrieve(_key: str, query: dict = {}, collection: str = config.MONGODB_AUTH_COLLECTION) -> dict | None:
+def _retrieve(collection: str = config.MONGODB_AUTH_COLLECTION) -> dict | None:
     """
-    verifies if a user exists and matches additional query criteria
+    verifies if a signed in user exists and matches additional query criteria
 
     args:
         collection (str): name of the collection to verify against
-        _key (str): unique identifier for the user (e.g., email or username)
-        query (dict) (optional): additional query parameters to filter user documents
 
     returns:
         dict | None: user document if user exists and matches criteria, None otherwise
     """
     try:
+        # retrieve user retrieval keys from flask session
+        _key, query = session.get(collection, (None, None))
+
+        # if no user retrieval keys found in session, return none
+        if not _key or not query:
+            return None
+
         # find user document
-        authentication = _find(collection, {"_key": _key, "_document": query})
+        authentication = _find(collection, {"_key": _key, "document": query})
 
         # if no user found or multiple users found (shouldn't happen with unique _key)
         if not authentication or isinstance(authentication, list):
@@ -114,21 +119,27 @@ def _retrieve(_key: str, query: dict = {}, collection: str = config.MONGODB_AUTH
         raise ex
 
 
-def _refresh(_key: str, document: dict, collection: str = config.MONGODB_AUTH_COLLECTION) -> int | None:
+def _refresh(document: dict, collection: str = config.MONGODB_AUTH_COLLECTION) -> int | None:
     """
     updates user information in the specified collection
 
     args:
         collection (str): the name of the collection containing user documents
-        _key (str): unique identifier for the user to update
         document (dict): dictionary containing the fields to update and their new values
 
     returns:
         int or None: number of documents updated if successful, none otherwise
     """
     try:
+        # retrieve user retrieval keys from flask session
+        _key, query = session.get(collection, (None, None))
+
+        # if no user retrieval keys found in session, return none
+        if not _key or not query:
+            return None
+
         # find user first to verify existence
-        if not _find(collection, {"_key": _key}):
+        if not _find(collection, {"_key": _key, "document": query}):
             return None
 
         # prepare the update document
