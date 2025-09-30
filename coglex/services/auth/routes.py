@@ -20,7 +20,7 @@ from flask import Blueprint, request, jsonify, abort
 import config
 
 # importing blueprint utilities used in current routing context
-from coglex import protected
+from coglex import authenticated, protected
 from coglex.services.auth.utils import _signup, _signin, _retrieve, _refresh, _session, _signout
 
 
@@ -101,6 +101,7 @@ def signin():
 @_auth.route("/service/auth/v1/retrieve/", methods=["GET"])
 @_auth.route("/service/auth/v1/retrieve", methods=["GET"])
 @protected()
+@authenticated()
 def retrieve(_key: str):
     """
     retrieve user profile data for the authenticated user
@@ -126,6 +127,7 @@ def retrieve(_key: str):
 @_auth.route("/service/auth/v1/refresh/", methods=["PATCH"])
 @_auth.route("/service/auth/v1/refresh", methods=["PATCH"])
 @protected()
+@authenticated()
 def refresh(_key: str):
     """
     refresh or update an existing user's profile data
@@ -159,6 +161,7 @@ def refresh(_key: str):
 
 @_auth.route("/service/auth/v1/session/", methods=["GET"])
 @_auth.route("/service/auth/v1/session", methods=["GET"])
+@protected()
 def session():
     """
     retrieve the current user session data
@@ -174,6 +177,7 @@ def session():
 
 @_auth.route("/service/auth/v1/signout/", methods=["GET"])
 @_auth.route("/service/auth/v1/signout", methods=["GET"])
+@protected()
 def signout():
     """
     handle user signout / session termination requests for a specified collection
