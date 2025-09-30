@@ -42,7 +42,7 @@ def _signup(_key: str, _password: str, document: dict = {}, collection: str = co
         _password = phash(_password)
 
         # inject _key and _password to document and create new user
-        return _insert(collection, [{"_key": _key, "_password": _password, "document": document}])
+        return _insert(collection, [{"_key": _key, "_password": _password, **document}])
     except Exception as ex:
         # rethrow exception
         raise ex
@@ -63,7 +63,7 @@ def _signin(_key: str, _password: str, query: dict = {}, collection: str = confi
     """
     try:
         # find user without password in query
-        authentication = _find(collection, {"_key": _key, "document": query})
+        authentication = _find(collection, {"_key": _key, **query})
 
         # if no user found, return none
         if not authentication:
@@ -107,7 +107,7 @@ def _retrieve(collection: str = config.MONGODB_AUTH_COLLECTION) -> dict | None:
             return None
 
         # find user document
-        authentication = _find(collection, {"_key": _key, "document": query})
+        authentication = _find(collection, {"_key": _key, **query})
 
         # if no user found or multiple users found (shouldn't happen with unique _key)
         if not authentication or isinstance(authentication, list):
@@ -139,7 +139,7 @@ def _refresh(document: dict, collection: str = config.MONGODB_AUTH_COLLECTION) -
             return None
 
         # find user first to verify existence
-        if not _find(collection, {"_key": _key, "document": query}):
+        if not _find(collection, {"_key": _key, **query}):
             return None
 
         # prepare the update document
