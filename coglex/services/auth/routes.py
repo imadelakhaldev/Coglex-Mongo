@@ -98,8 +98,8 @@ def signin():
     return jsonify(req), 200
 
 
-@_auth.route("/service/auth/v1/retrieve/", methods=["GET"])
-@_auth.route("/service/auth/v1/retrieve", methods=["GET"])
+@_auth.route("/service/auth/v1/", methods=["GET"])
+@_auth.route("/service/auth/v1", methods=["GET"])
 @protected()
 @authenticated()
 def retrieve(_key: str):
@@ -124,8 +124,8 @@ def retrieve(_key: str):
     return jsonify(req), 200
 
 
-@_auth.route("/service/auth/v1/refresh/", methods=["PATCH"])
-@_auth.route("/service/auth/v1/refresh", methods=["PATCH"])
+@_auth.route("/service/auth/v1/", methods=["PATCH"])
+@_auth.route("/service/auth/v1", methods=["PATCH"])
 @protected()
 @authenticated()
 def refresh(_key: str):
@@ -175,8 +175,8 @@ def session():
         return abort(500, description=str(ex))
 
 
-@_auth.route("/service/auth/v1/signout/", methods=["GET"])
-@_auth.route("/service/auth/v1/signout", methods=["GET"])
+@_auth.route("/service/auth/v1/", methods=["DELETE"])
+@_auth.route("/service/auth/v1", methods=["DELETE"])
 @protected()
 def signout():
     """
