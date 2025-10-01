@@ -73,7 +73,7 @@ def signin():
     - _password: user password
     - query: optional additional filter criteria
 
-    returns user data and session token on success.
+    returns user data and session token on success
     """
     # get document from request body
     _key, _password = request.json.get("_key"), request.json.get("_password")

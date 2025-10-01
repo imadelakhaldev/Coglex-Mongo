@@ -1,111 +1,228 @@
-<div align="center">
-
 # Coglex Intelligence
 
-🧠 A powerful Flask-based backend collection of services for application development
+![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
+![Flask](https://img.shields.io/badge/flask-3.1.1-green.svg)
+![MongoDB](https://img.shields.io/badge/mongodb-compatible-brightgreen.svg)
+![Stripe](https://img.shields.io/badge/stripe-payments-purple.svg)
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
-[![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![Flask](https://img.shields.io/badge/flask-latest-green.svg)](https://flask.palletsprojects.com/)
-[![MongoDB](https://img.shields.io/badge/mongodb-latest-success.svg)](https://www.mongodb.com/)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+A comprehensive, secure backend framework built with Flask and MongoDB, providing microservices architecture for modern web applications. Coglex offers robust authentication, file management, payment processing, and database operations with enterprise-grade security features.
 
-</div>
+## 🚀 Features
 
-## 🌟 Features
+- **🔐 Advanced Authentication System**: Secure user management with bcrypt password hashing, JWT tokens, session management, and timing attack protection
+- **📁 Secure File Management**: Complete file upload/download system with type validation, size limits, and secure storage
+- **💳 Stripe Payment Integration**: PCI-compliant payment processing with checkout sessions and secure payment intent handling
+- **🗄️ MongoDB Integration**: Robust NoSQL database operations with injection prevention and data sanitization
+- **🛡️ Multi-layer API Protection**: Comprehensive security with API key authentication, rate limiting, and input validation
+- **⚡ Microservices Architecture**: Modular service design for scalability and maintainability
 
-- 🔐 **Enhanced Authentication System** - Session-based user authentication with secure password hashing using bcrypt, timing attack protection, and rate limiting
-- 📁 **Secure File Management** - Comprehensive file upload, download, and deletion with enhanced validation, type checking, and access controls
-- 💳 **Stripe Payment Integration** - Secure payment processing with Stripe's latest API standards and PCI compliance measures
-- 📦 **Secure MongoDB Integration** - CRUD operations with NoSQL injection prevention, input sanitization, and custom hex ID generation
-- 🛡️ **Multi-layered API Protection** - API keys and session-based authentication with comprehensive security decorators and validation
+## 📋 Table of Contents
 
-## 📖 Overview
+- [Overview](#overview)
+- [Project Structure](#project-structure)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [API Documentation](#api-documentation)
+- [Security Features](#security-features)
+- [Development](#development)
+- [Deployment](#deployment)
+- [Contributing](#contributing)
 
-Coglex Intelligence is a sophisticated and secure backend service built with Flask, designed to provide robust and scalable API endpoints for user authentication, data storage, file management, and payment processing. The application follows a modular architecture with clearly separated services, each providing specific functionality through RESTful APIs with comprehensive security measures.
+## 🔍 Overview
 
-**Key Security Features:**
-- NoSQL injection prevention across all database operations
-- Enhanced authentication with timing attack protection and rate limiting
-- Secure file handling with comprehensive validation and access controls
-- PCI-compliant payment processing with Stripe integration
-- Multi-layered API protection with session management and API key validation
+Coglex Intelligence is a production-ready backend framework designed for modern web applications requiring secure, scalable, and maintainable architecture. Built with Flask and MongoDB, it provides a comprehensive suite of services including user authentication, file management, payment processing, and database operations.
 
-The framework has been thoroughly audited and hardened against common security vulnerabilities, making it suitable for production environments requiring high security standards.
+### Key Architecture Components
 
-## 🏗️ Project Structure
+- **Flask Application**: WSGI-compatible web framework with blueprint-based routing
+- **MongoDB Integration**: NoSQL database with PyMongo for flexible data operations
+- **Microservices Design**: Modular services for authentication, storage, archive, and payments
+- **Security Layer**: Multi-tier protection with API keys, JWT tokens, and input validation
+- **Production Ready**: Waitress WSGI server for production deployment
+
+## 📁 Project Structure
 
 ```
 coglex/
-├── __init__.py        # Flask app initialization, DB connection, blueprints, decorators
-├── gateway/           # Entry point for new routes and applications
-│   └── module/     # example module for developed application
-├── services/          # Core service modules
-│   ├── auth/          # Authentication service
-│   │   ├── routes.py  # API routes for auth operations (signup, signin, session, signout, refresh)
-│   │   └── utils.py   # Enhanced auth utilities with secure session management
-│   ├── archive/       # File storage service
-│   │   ├── routes.py  # File operation endpoints (upload, download, delete)
-│   │   └── utils.py   # Secure file handling utilities with enhanced validation
-│   ├── payment/       # Payment processing (Stripe)
-│   │   ├── routes.py  # Payment endpoints (checkout, subscription)
-│   │   └── utils.py   # Stripe integration helpers with secure payment processing
-│   └── storage/       # Database operations
-│       ├── routes.py  # CRUD operation endpoints with query support
-│       └── utils.py   # MongoDB utilities with NoSQL injection prevention
-├── static/           # Static assets and uploads
-└── templates/        # HTML templates
+├── .env.example              # Environment variables template
+├── .gitignore               # Git ignore rules
+├── .pylintrc                # Python linting configuration
+├── README.md                # Project documentation
+├── config.py                # Global configuration settings
+├── requirements.txt         # Python dependencies
+├── run.py                   # Application entry point
+├── utils.py                 # Shared utility functions
+└── coglex/                  # Main application package
+    ├── __init__.py          # Flask app initialization & decorators
+    ├── gateway/             # Gateway modules (extensible)
+    ├── services/            # Microservices collection
+    │   ├── auth/            # Authentication service
+    │   │   ├── routes.py    # Auth API endpoints
+    │   │   └── utils.py     # Auth business logic
+    │   ├── storage/         # Database operations service
+    │   │   ├── routes.py    # Storage API endpoints
+    │   │   └── utils.py     # MongoDB CRUD operations
+    │   ├── archive/         # File management service
+    │   │   ├── routes.py    # File API endpoints
+    │   │   └── utils.py     # File operations logic
+    │   └── payment/         # Payment processing service
+    │       ├── routes.py    # Payment API endpoints
+    │       └── utils.py     # Stripe integration logic
+    ├── static/              # Static files directory
+    └── templates/           # Jinja2 templates directory
 ```
 
-## 🚀 Quick Start
+## 📋 Prerequisites
 
-### Prerequisites
+- **Python 3.8+** (recommended: Python 3.9 or higher)
+- **MongoDB** (local instance or MongoDB Atlas)
+- **Stripe Account** (for payment processing)
+- **Virtual Environment** (strongly recommended)
 
-- Python 3.8+ (recommended: Python 3.9 or higher)
-- MongoDB instance (local or cloud-based like MongoDB Atlas)
-- Stripe account (for payment features)
-- Virtual environment (strongly recommended)
+## 🛠️ Installation
 
-### Installation
-
-1. **Clone the repository**
+### 1. Clone the Repository
 ```bash
 git clone https://github.com/imadelakhaldev/coglex.git
 cd coglex
 ```
 
-2. **Create and activate virtual environment**
+### 2. Create Virtual Environment
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
-3. **Install dependencies**
+### 3. Install Dependencies
 ```bash
 pip install -r requirements.txt
 ```
 
-4. **Set up environment variables**
+### 4. Environment Configuration
 ```bash
 cp .env.example .env
-# Edit .env with your secure configuration:
-# - SERVER_SECRET: Strong API key for endpoint protection (use a secure random string)
-# - MONGODB_URI: Your MongoDB connection string with authentication
-# - MONGODB_DATABASE: Your MongoDB database name
-# - STRIPE_SECRET_KEY: Stripe API secret key from your Stripe dashboard
+# Edit .env with your configuration values
 ```
 
-5. **Verify MongoDB connection**
-```bash
-# Ensure your MongoDB instance is running and accessible
-# Test connection with your MONGODB_URI
-```
+### 5. Verify MongoDB Connection
+Ensure your MongoDB instance is running and accessible with the provided URI.
 
-6. **Run the application**
+### 6. Run the Application
 ```bash
 python run.py
 ```
 
-The application will start on `http://localhost:5000` by default.
+The application will be available at `http://127.0.0.1:5000`
+
+## ⚙️ Configuration
+
+### Environment Variables
+
+Create a `.env` file with the following variables:
+
+```env
+# Server Configuration
+SERVER_SECRET=your-secure-random-string-here
+SERVER_DEBUG=True
+
+# MongoDB Configuration
+MONGODB_URI=mongodb://username:password@localhost:27017/database
+
+# SMTP Configuration (Optional)
+SMTP_PASSWORD=your-smtp-password
+
+# Stripe Configuration
+STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
+STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key
+```
+
+### Key Configuration Parameters
+
+- **SERVER_SECRET**: Strong API key for authentication (secure random string)
+- **MONGODB_URI**: MongoDB connection string with authentication
+- **STRIPE_SECRET_KEY**: Secret key from your Stripe dashboard
+- **SERVER_DEBUG**: Set to `False` in production
+
+## 📚 API Documentation
+
+### Authentication Service (`/service/auth/v1/`)
+
+**User Registration**
+- `POST /service/auth/v1/signup`
+- Creates new user accounts with secure password hashing
+- Requires: `_key`, `_password`, optional `document`
+
+**User Authentication**
+- `POST /service/auth/v1/signin`
+- Authenticates users and returns JWT tokens
+- Requires: `_key`, `_password`, optional `query`
+
+**User Profile Retrieval**
+- `GET /service/auth/v1/<_key>`
+- Retrieves user profile information
+- Requires: valid API key, optional `query`
+
+**User Profile Update**
+- `PATCH /service/auth/v1/<_key>`
+- Updates user profile data
+- Requires: `document`, optional `query`
+
+### Storage Service (`/service/storage/v1/`)
+
+**Document Operations**
+- `GET /service/storage/v1/<collection>/<key>` - Retrieve single document
+- `GET /service/storage/v1/<collection>` - Retrieve multiple documents
+- `POST /service/storage/v1/<collection>` - Insert documents
+- `PATCH /service/storage/v1/<collection>/<key>` - Update single document
+- `PATCH /service/storage/v1/<collection>` - Update multiple documents
+- `DELETE /service/storage/v1/<collection>/<key>` - Delete single document
+- `DELETE /service/storage/v1/<collection>` - Delete multiple documents
+
+**Aggregation Operations**
+- `POST /service/storage/v1/<collection>/aggregate` - MongoDB aggregation pipeline
+
+### Archive Service (`/service/archive/v1/`)
+
+**File Management**
+- `GET /service/archive/v1/` - List all uploaded files
+- `POST /service/archive/v1/` - Upload files with validation
+- `GET /service/archive/v1/<reference>` - Download files securely
+- `DELETE /service/archive/v1/<reference>` - Delete files and metadata
+
+### Payment Service (`/service/payment/v1/`)
+
+**Stripe Integration**
+- `POST /service/payment/v1/` - Create Stripe checkout sessions
+- Supports both one-time payments and subscriptions
+- Requires: `mode`, `success_url`, `cancel_url`, `email`, `linedata`
+
+## 🛡️ Security Features
+
+### Authentication & Authorization
+- **bcrypt Password Hashing**: Secure password storage with configurable rounds
+- **JWT Token Management**: Stateless authentication with expiration handling
+- **API Key Protection**: Server-level API key validation for all endpoints
+- **Session Security**: Secure session management with timeout handling
+- **Timing Attack Protection**: Constant-time password comparison
+
+### Data Protection
+- **NoSQL Injection Prevention**: Input sanitization and query validation
+- **Input Validation**: Comprehensive data validation and sanitization
+- **File Security**: File type validation, size limits, and secure storage
+- **Data Encryption**: Secure data transmission and storage practices
+
+### API Security
+- **Rate Limiting**: Protection against brute force attacks
+- **CORS Configuration**: Cross-origin request security
+- **Error Handling**: Secure error responses without information leakage
+- **Audit Logging**: Comprehensive logging for security monitoring
+
+### Payment Security
+- **PCI Compliance**: Stripe integration for secure payment processing
+- **Payment Intent Validation**: Secure payment flow with verification
+- **Webhook Security**: Stripe webhook signature verification
 
 ## 🔒 Security Implementation
 
@@ -146,136 +263,92 @@ The application will start on `http://localhost:5000` by default.
 - **Payment Intent Validation**: Secure handling of payment intents and status tracking
 - **Data Protection**: Sensitive payment data handled according to PCI compliance standards
 
-## 🛠️ Core Services
+## 🔧 Development
 
-### Authentication Service
-
-```python
-# Enhanced User Management with Secure Session Handling
-POST /service/auth/v1/signup/<collection>/  # Register new user
-    - Validates user data and prevents duplicates with enhanced checks
-    - Hashes passwords securely using bcrypt with configurable rounds
-    - Creates user document in MongoDB with custom hex ID
-    - Implements comprehensive input validation and sanitization
-
-POST /service/auth/v1/signin/<collection>/  # User login
-    - Validates credentials against stored hash with timing attack protection
-    - Creates secure Flask session with user data and session tokens
-    - Returns user document on successful authentication
-    - Implements rate limiting and brute force protection
-
-GET /service/auth/v1/session/<collection>/  # Get current session
-    - Returns current session data for the collection with validation
-    - Used for secure session validation and user info retrieval
-    - Implements session integrity checks and timeout handling
-
-GET /service/auth/v1/signout/<collection>/  # User logout
-    - Clears session data for the specified collection securely
-    - Terminates user session with proper cleanup
-    - Implements secure session invalidation
-
-PATCH /service/auth/v1/refresh/<collection>/  # Update user data
-    - Updates user information in the database with validation
-    - Handles password updates with secure re-hashing
-    - Validates user existence and permissions before updating
-    - Implements data integrity checks and audit logging
+### Running in Development Mode
+```bash
+# Set debug mode in config.py or .env
+SERVER_DEBUG=True
+python run.py
 ```
 
-### Storage Service
+### Code Quality
+```bash
+# Run linting
+pylint coglex/
 
-```python
-# Secure Database Operations with MongoDB and NoSQL Injection Prevention
-GET    /service/storage/v1/<collection>/       # List documents
-    - Supports secure query parameters with input validation
-    - Accepts sanitized JSON query and keys parameters
-    - Returns single document or list based on results
-    - Implements query parameter validation and sanitization
-
-GET    /service/storage/v1/<collection>/<key>/  # Get single document by ID
-    - Retrieves document by _id field with input validation
-    - Supports field selection with keys parameter
-    - Implements secure document access controls
-
-POST   /service/storage/v1/<collection>/       # Create document(s)
-    - Accepts single document or array of documents with validation
-    - Generates custom hex IDs for each document
-    - Returns inserted document ID(s) with creation metadata
-    - Implements input sanitization and data validation
-
-PATCH  /service/storage/v1/<collection>/<key>/  # Update single document
-    - Updates document by _id field with secure validation
-    - Supports MongoDB update operators ($set, $inc, etc.) with sanitization
-    - Implements update operation security controls
-
-PATCH  /service/storage/v1/<collection>/       # Update multiple documents
-    - Updates documents matching validated query parameters
-    - Supports bulk updates with secure MongoDB operators
-    - Implements batch operation security and validation
-
-DELETE /service/storage/v1/<collection>/<key>/  # Delete single document
-    - Deletes document by _id field with authorization checks
-    - Returns count of deleted documents with audit information
-    - Implements secure deletion with proper validation
-
-DELETE /service/storage/v1/<collection>/       # Delete multiple documents
-    - Deletes documents matching validated query parameters
-    - Returns count of deleted documents with operation details
-    - Implements bulk deletion security controls
+# Format code
+black coglex/
 ```
 
-### Archive Service
-
-```python
-# Secure File Management with Enhanced Validation
-POST /service/archive/v1/upload/  # Upload file
-    - Handles file uploads with comprehensive size and type validation
-    - Stores files securely with proper access controls
-    - Returns file metadata and storage information
-    - Implements file type verification and security scanning
-    - Supports various file formats with configurable restrictions
-
-GET /service/archive/v1/download/<file_id>/  # Download file
-    - Retrieves stored files by unique identifier with access validation
-    - Handles secure file streaming for large files
-    - Returns appropriate content types and security headers
-    - Implements download tracking and access logging
-
-DELETE /service/archive/v1/delete/<file_id>/  # Delete file
-    - Removes files from storage with proper authorization
-    - Cleans up associated metadata and references
-    - Returns deletion confirmation with audit trail
-    - Implements secure file deletion practices
-
-GET /service/archive/v1/list/  # List uploaded files
-    - Returns list of accessible files with metadata
-    - Supports filtering and pagination with security controls
-    - Includes file size, upload date, type, and security status
+### Testing
+```bash
+# Run tests (if test suite is available)
+python -m pytest tests/
 ```
 
-### Payment Service
+## 🚀 Deployment
+
+### Production Configuration
+1. Set `SERVER_DEBUG=False` in production
+2. Use strong, unique `SERVER_SECRET`
+3. Configure MongoDB with authentication
+4. Set up SSL/TLS certificates
+5. Use environment variables for sensitive data
+
+### WSGI Deployment
+The application uses Waitress WSGI server for production deployment:
 
 ```python
-# Stripe Integration for Secure Payment Processing
-POST /service/payment/v1/checkout/  # Create payment checkout
-    - Creates Stripe payment hosted checkout with specified line items
-    - Returns checkout session object
-    - Handles payment method configuration and currency settings
-    - Implements secure payment flow with Stripe's latest API
+# Automatic production server when SERVER_DEBUG=False
+python run.py
+```
 
-GET /service/payment/v1/subscription/  # Check subscription status
-    - Creates a subscription schedule with specified line items
-    - Returns subscription details and status
-    - Provides real-time subscription tracking capabilities
+### Docker Deployment (Optional)
+```dockerfile
+FROM python:3.9-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+COPY . .
+EXPOSE 5000
+CMD ["python", "run.py"]
 ```
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/galaxy`)
-3. Commit your changes (`git commit -m 'added galaxy forming features'`)
-4. Push to the branch (`git push origin feature/galaxy`)
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 👥 Authors
+### Development Guidelines
+- Follow PEP 8 style guidelines
+- Add comprehensive docstrings
+- Include error handling
+- Write secure code
+- Test thoroughly
 
-- **IMAD EL AKHAL** - *Initial work* - [Website](https://ielakhal.com/)
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🆘 Support
+
+For support and questions:
+- Create an issue in the repository
+- Check the documentation
+- Review the code examples
+
+## 🔄 Version History
+
+- **Genesis**: Initial release with core microservices architecture
+- Comprehensive authentication system
+- Secure file management
+- Stripe payment integration
+- MongoDB operations with security enhancements
+
+---
+
+**Coglex Intelligence** - Secure, Scalable, Production-Ready Backend Framework

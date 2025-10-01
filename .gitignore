@@ -4,5 +4,8 @@
 # byte-code files
 __pycache__/
 
+# macOS system files
+.DS_Store
+
 # configuration file (contains sensitive info)
 .env
