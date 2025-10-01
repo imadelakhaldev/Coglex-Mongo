@@ -15,7 +15,7 @@ from functools import wraps
 
 # pip install flask
 # micro server routing, services, templating, and http serving toolkit
-from flask import Flask, request, abort
+from flask import Flask, request, abort, g
 
 # pip install pymongo
 # initialize mongodb client
@@ -121,6 +121,9 @@ def authenticated(collection: str = config.MONGODB_AUTH_COLLECTION):
             # if user doesn't exist or is inactive to the given query, return 401
             if not authentication:
                 return abort(401)
+
+            # store user authentication data in global context for route scope use
+            g.authentication = authentication
 
             # if we get here, token is valid and user verified
             return function(*args, **kwargs)
