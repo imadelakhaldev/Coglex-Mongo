@@ -6,7 +6,7 @@ this module provides common utility functions and helper methods that are used a
 
 # standard imports
 from typing import Any
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone
 
 # pip install colorama
 # cross-platform terminal colored inputs
@@ -66,7 +66,7 @@ def pcheck(password: str, hashed: str) -> bool:
     return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
 
 
-def jwtenc(payload: Any, expiration: datetime = datetime.now(timezone.utc) + timedelta(seconds=config.SERVER_SESSION_LIFETIME), key: str = config.SERVER_SECRET) -> str:
+def jwtenc(payload: Any, expiration: datetime = datetime.now(timezone.utc) + config.SERVER_SESSION_LIFETIME, key: str = config.SERVER_SECRET) -> str:
     """
     generate a jwt (json web token) for user authentication
 
