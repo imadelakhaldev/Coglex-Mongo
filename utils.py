@@ -4,6 +4,10 @@ this module provides common utility functions and helper methods that are used a
 """
 
 
+# standard imports
+from typing import Any
+from datetime import datetime, timezone, timedelta
+
 # pip install colorama
 # cross-platform terminal colored inputs
 from colorama import Fore, Style
@@ -13,8 +17,12 @@ from colorama import Fore, Style
 # heavy import moved to local functions, instead of global module import
 # import bcrypt
 
+# pip install PyJWT
+# jwt for token generation
+import jwt
+
 # local imports
-# import config
+import config
 
 
 # prints colored terminal output using colorama
@@ -27,24 +35,6 @@ def sprint(color: str, content: str) -> None:
         content (str): actual text to print in color
     """
     print(f"{getattr(Fore, color.upper(), Fore.RESET)}{content}{Style.RESET_ALL}")
-
-
-def fstring(template: str, variables: dict) -> str:
-    """
-    format a string by replacing placeholders with values from a dictionary
-    
-    args:
-        template (str): string template with placeholders in format "{ key }"
-        variables (dict): dictionary containing key-value pairs for replacement
-        
-    returns:
-        str: formatted string with replaced placeholders
-    """
-    for key, value in variables.items():
-        placeholder = "{ " + key + " }"
-        template = template.replace(placeholder, str(value))
-
-    return template
 
 
 def phash(password: str) -> str:
@@ -74,3 +64,41 @@ def pcheck(password: str, hashed: str) -> bool:
     """
     import bcrypt
     return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
+
+
+def jwtenc(payload: Any, expiration: datetime = datetime.now(timezone.utc) + timedelta(seconds=config.SERVER_SESSION_LIFETIME), key: str = config.SERVER_SECRET) -> str:
+    """
+    generate a jwt (json web token) for user authentication
+
+    args:
+        payload (any): any data to be encoded in the token
+        expiration (datetime): token expiration timestamp, defaults to current utc time plus global value
+        key (str): secret key used for token encoding
+
+    returns:
+        str: generated jwt token string encoded with the server secret
+    """
+    # generate and return jwt token
+    return jwt.encode({
+        "_": payload,
+        "exp": expiration
+    }, key, algorithm="HS256")
+
+
+def jwtdec(token: str, key: str = config.SERVER_SECRET) -> Any | None:
+    """
+    decode a jwt (json web token) for user authentication
+
+    args:
+        token (str): jwt token string to decode
+        key (str): secret key used for token decoding, defaults to global value
+
+    returns:
+        any | None: decoded token payload containing data if valid, none otherwise
+    """
+    try:
+        # decode and return jwt token
+        return jwt.decode(token, key, algorithms=["HS256"])["_"]
+    except Exception:
+        # return none if token is invalid or expired
+        return None

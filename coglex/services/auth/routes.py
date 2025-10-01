@@ -4,8 +4,7 @@ it provides the following core functionality:
 
 - user registration (signup)
 - user authentication (signin) 
-- session management and tracking
-- user logout (signout)
+- user profile retrievals
 - user profile updates
 
 the routes in this module handle http requests for these operations and integrate
@@ -20,8 +19,8 @@ from flask import Blueprint, request, jsonify, abort
 import config
 
 # importing blueprint utilities used in current routing context
-from coglex import authenticated, protected
-from coglex.services.auth.utils import _signup, _signin, _retrieve, _refresh, _session, _signout
+from coglex import protected
+from coglex.services.auth.utils import _signup, _signin, _retrieve, _refresh
 
 
 # blueprint instance
@@ -67,13 +66,13 @@ def signup():
 @protected()
 def signin():
     """
-    authenticate a user against the auth collection.
-    
+    authenticate a user against the auth collection
+
     expects json payload with:
     - _key: unique identifier for the user
     - _password: user password
     - query: optional additional filter criteria
-    
+
     returns user data and session token on success.
     """
     # get document from request body
@@ -98,20 +97,24 @@ def signin():
     return jsonify(req), 200
 
 
-@_auth.route("/service/auth/v1/", methods=["GET"])
-@_auth.route("/service/auth/v1", methods=["GET"])
+@_auth.route("/service/auth/v1/<_key>/", methods=["GET"])
+@_auth.route("/service/auth/v1/<_key>", methods=["GET"])
 @protected()
-@authenticated()
 def retrieve(_key: str):
     """
-    retrieve user profile data for the authenticated user
+    retrieve a user profile by key
 
-    returns the stored profile information for the user identified by the
-    provided key, requires an active session and valid authentication
+    expects path parameter:
+    - _key: unique identifier for the user
+
+    expects json payload with:
+    - query: optional additional filter criteria
+
+    returns user data on success
     """
     try:
         # retrieving user data
-        req = _retrieve()
+        req = _retrieve(_key, request.json.get("query"))
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
@@ -124,18 +127,21 @@ def retrieve(_key: str):
     return jsonify(req), 200
 
 
-@_auth.route("/service/auth/v1/", methods=["PATCH"])
-@_auth.route("/service/auth/v1", methods=["PATCH"])
+@_auth.route("/service/auth/v1/<_key>/", methods=["PATCH"])
+@_auth.route("/service/auth/v1/<_key>", methods=["PATCH"])
 @protected()
-@authenticated()
 def refresh(_key: str):
     """
-    refresh or update an existing user's profile data
+    update a user profile by key
+
+    expects path parameter:
+    - _key: unique identifier for the user
 
     expects json payload with:
-    - document: updated user data to merge into the profile
+    - document: updated user data
+    - query: optional additional filter criteria
 
-    returns the updated user document on success.
+    returns updated user data on success
     """
     # get document from request body
     document = request.json.get("document")
@@ -146,7 +152,7 @@ def refresh(_key: str):
 
     try:
         # refreshing user data
-        req = _refresh(document)
+        req = _refresh(_key, document, request.json.get("query"))
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
@@ -157,33 +163,3 @@ def refresh(_key: str):
 
     # returning results
     return jsonify(req), 200
-
-
-@_auth.route("/service/auth/v1/session/", methods=["GET"])
-@_auth.route("/service/auth/v1/session", methods=["GET"])
-@protected()
-def session():
-    """
-    retrieve the current user session data
-
-    returns the user session data if available, otherwise returns (None, None)
-    """
-    try:
-        return jsonify(_session()), 200
-    except Exception as ex:
-        # rethrow exception
-        return abort(500, description=str(ex))
-
-
-@_auth.route("/service/auth/v1/", methods=["DELETE"])
-@_auth.route("/service/auth/v1", methods=["DELETE"])
-@protected()
-def signout():
-    """
-    handle user signout / session termination requests for a specified collection
-    """
-    try:
-        return jsonify(_signout()), 200
-    except Exception as ex:
-        # rethrow exception
-        return abort(500, description=str(ex))

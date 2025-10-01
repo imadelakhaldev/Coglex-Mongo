@@ -15,7 +15,7 @@ from functools import wraps
 
 # pip install flask
 # micro server routing, services, templating, and http serving toolkit
-from flask import Flask, request, session, abort
+from flask import Flask, request, abort
 
 # pip install pymongo
 # initialize mongodb client
@@ -24,6 +24,9 @@ from pymongo import MongoClient
 # pip install stripe
 # online payment processing provider
 import stripe
+
+# importing generic utilities
+from utils import jwtdec
 
 # importing base config parameters, and generic utilities
 import config
@@ -96,11 +99,24 @@ def authenticated(collection: str = config.MONGODB_AUTH_COLLECTION):
     def decorator(function):
         @wraps(function)
         def wrapper(*args, **kwargs):
+            # get token from request headers
+            token = request.headers.get("Authorization", "").replace("Bearer ", "")
+
+            # if token is missing, return 401
+            if not token:
+                return abort(401)
+
+            # decode given token and extract user key from payload, and the rest of the payload params
+            try:
+                _key, _password, query = jwtdec(token)
+            except Exception:
+                return abort(401)
+
             # importing generic utilities
             from coglex.services.auth.utils import _retrieve
 
-            # authenticate/ verify user
-            authentication = _retrieve(collection)
+            # authenticate / verify user
+            authentication = _retrieve(_key, {"_password": _password, **query}, collection)
 
             # if user doesn't exist or is inactive to the given query, return 401
             if not authentication:
