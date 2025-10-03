@@ -5,11 +5,14 @@ operations utilizing mongodb client for user management and authentication
 """
 
 
-# local helper imports
-from utils import pcheck, phash, jwtenc
+# flask built-in session module
+from flask import session
 
 # mongodb storage module
 from coglex.services.storage.utils import _insert, _find, _patch
+
+# local helper imports
+from utils import pcheck, phash, jwtenc
 
 # global confirgurations
 import config
@@ -77,7 +80,13 @@ def _signin(_key: str, _password: str, query: dict = {}, collection: str = confi
         # storing hashed password (not a good practice, but it's safe since we are storing the "hashed" password (not plaintext one), into a secured jwt token)
         # storing additonal query (allows us to verify if user is active or not, and other criteria)
         # generate jwt token for later user authentication
-        return jwtenc((_key, _password, query))
+        token = jwtenc((_key, authentication.get("_password"), query))
+
+        # store generated token in session
+        session["token"] = token
+
+        # return generated token
+        return token
     except Exception as ex:
         # rethrow exception
         raise ex

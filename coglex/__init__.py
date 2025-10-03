@@ -15,7 +15,7 @@ from functools import wraps
 
 # pip install flask
 # micro server routing, services, templating, and http serving toolkit
-from flask import Flask, request, abort, g
+from flask import Flask, request, abort, session, g
 
 # pip install pymongo
 # initialize mongodb client
@@ -102,7 +102,11 @@ def authenticated(collection: str = config.MONGODB_AUTH_COLLECTION):
             # get token from request headers
             token = request.headers.get("Authorization", "").replace("Bearer ", "")
 
-            # if token is missing, return 401
+            # if token is missing from headers, try session
+            if not token:
+                token = session.get("token")
+
+            # if token is missing from headers or session, return 401
             if not token:
                 return abort(401)
 

@@ -83,7 +83,7 @@ def signin():
         return abort(400)
 
     try:
-        # signing up user
+        # signing in user
         req = _signin(_key, _password, request.json.get("query"))
     except Exception as ex:
         # rethrow exception

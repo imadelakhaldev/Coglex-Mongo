@@ -98,7 +98,7 @@ def jwtdec(token: str, key: str = config.SERVER_SECRET) -> Any | None:
     """
     try:
         # decode and return jwt token
-        return jwt.decode(token, key, algorithms=["HS256"])["_"]
+        return jwt.decode(token, key, algorithms=["HS256"]).get("_")
     except Exception:
         # return none if token is invalid or expired
         return None
