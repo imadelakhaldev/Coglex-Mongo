@@ -166,8 +166,8 @@ def _signout(collection: str = config.MONGODB_AUTH_COLLECTION) -> bool:
     returns:
         bool: True if the token was successfully removed, False otherwise
     """
-    # checking required parameters
-    if not collection:
+    # checking if token exists in session
+    if not session.get(collection):
         return False
 
     # remove token from collection key if it exists
