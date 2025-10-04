@@ -184,7 +184,7 @@ def patch_many(collection: str):
         collection (str): actual name of the collection to query
     """
     # retreiving document and query from request body
-    document, query = request.json.get("document"), request.args.get("query")
+    document, query = request.json.get("document"), request.json.get("query")
 
     # checking required parameters
     if not document:
