@@ -1,6 +1,6 @@
 """
-Payment service routes for handling Stripe payment intents and webhooks.
-Provides endpoints for creating payment intents and processing Stripe webhook events.
+payment service routes for handling Stripe payment intents and webhooks
+provides endpoints for creating payment intents and processing Stripe webhook events.
 """
 
 
@@ -36,7 +36,7 @@ def checkout():
         response with Checkout session details
     """
     # retreiving required parameters from request json
-    mode, success_url, cancel_url, email, linedata = request.json.get("mode"), request.json.get("success_url"), request.json.get("cancel_url"), request.json.get("email"), request.json.get("linedata")
+    mode, success_url, cancel_url, email, linedata, metadata = request.json.get("mode"), request.json.get("success_url"), request.json.get("cancel_url"), request.json.get("email"), request.json.get("linedata"), request.json.get("metadata")
 
     # checking required paramters
     if not mode or not success_url or not cancel_url or not email or not linedata:
@@ -44,7 +44,7 @@ def checkout():
 
     try:
         # creating payment checkout
-        req = _checkout(mode=mode, success_url=success_url, cancel_url=cancel_url, email=email, linedata=linedata, metadata=request.json.get("metadata") or {})
+        req = _checkout(mode=mode, success_url=success_url, cancel_url=cancel_url, email=email, linedata=linedata, metadata=metadata)
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
