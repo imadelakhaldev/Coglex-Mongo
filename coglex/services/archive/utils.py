@@ -32,7 +32,7 @@ def _list(query: dict = {}, collection: str = config.MONGODB_ARCHIVE_COLLECTION)
     """
     try:
         # retrieve all documents from the collection
-        documents = _find(collection, query=query)
+        documents = _find(collection, query)
 
         # if no documents found
         if not documents:
@@ -105,14 +105,14 @@ def _download(reference: str, collection: str = config.MONGODB_ARCHIVE_COLLECTIO
             return None, None
 
         # metadata is a dictionary and contains "_filepath" and "_filename" system reserved keys
-        filepath = document.get("_filepath")
+        path = document.get("_filepath")
 
         # check if filepath exists
-        if not filepath or not os.path.exists(filepath):
+        if not path or not os.path.exists(path):
             return None, None
 
         # return filepath and filename
-        return document.get("_filename"), filepath
+        return document.get("_filename"), path
     except Exception as ex:
         # rethrow exception
         raise ex
@@ -138,11 +138,11 @@ def _destroy(reference: str, collection: str = config.MONGODB_ARCHIVE_COLLECTION
             return False
 
         # retrieve filepath
-        filepath = document.get("_filepath")
+        path = document.get("_filepath")
 
         # delete file from upload folder if it exists
-        if filepath and os.path.exists(filepath):
-            os.remove(filepath)
+        if path and os.path.exists(path):
+            os.remove(path)
 
         # delete metadata from database system
         return _delete(collection, {"_id": reference})
