@@ -83,7 +83,7 @@ def _signin(_key: str, _password: str, query: dict = {}, collection: str = confi
         token = jwtenc((_key, authentication.get("_password"), query))
 
         # store generated token in session
-        session["token"] = token
+        session[collection] = token
 
         # return generated token
         return token
@@ -154,3 +154,24 @@ def _refresh(_key: str, document: dict, query: dict = {}, collection: str = conf
         return _patch(collection, construction, {"_key": _key})
     except Exception as ex:
         raise ex
+
+
+def _signout(collection: str = config.MONGODB_AUTH_COLLECTION) -> bool:
+    """
+    signs out the current user by removing the token from the session
+
+    args:
+        collection (str): the name of the collection (used as session key) to remove the token from
+
+    returns:
+        bool: True if the token was successfully removed, False otherwise
+    """
+    # checking required parameters
+    if not collection:
+        return False
+
+    # remove token from collection key if it exists
+    session.pop(collection, None)
+
+    # return success
+    return True

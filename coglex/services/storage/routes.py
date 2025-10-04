@@ -66,7 +66,6 @@ def find_one(collection: str, key: str):
         collection (str): name of the collection to query
         key (str): unique identifier of the document to retrieve
     """
-    # convert keys string to dictionary if present
     # safely parse keys from request args using json.loads if present
     keys = request.args.get("keys")
 
@@ -95,8 +94,7 @@ def find_many(collection: str):
     args:
         collection (str): actual name of the collection to query
     """
-    # convert keys string to dictionary if present
-    # safely parse keys from request args using json.loads if present
+    # safely parse query and keys from request args using json.loads if present
     query, keys = request.args.get("query"), request.args.get("keys")
 
     try:
@@ -185,20 +183,16 @@ def patch_many(collection: str):
     args:
         collection (str): actual name of the collection to query
     """
-    # get document from request body
-    document = request.json.get("document")
+    # retreiving document and query from request body
+    document, query = request.json.get("document"), request.args.get("query")
 
     # checking required parameters
     if not document:
         return abort(400)
 
-    # convert keys string to dictionary if present
-    # safely parse keys from request args using json.loads if present
-    query = request.args.get("query")
-
     try:
         # patch document
-        req = _patch(collection, document, json.loads(query) if query else None)
+        req = _patch(collection, document, query)
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
@@ -247,8 +241,7 @@ def delete_many(collection: str):
     args:
         collection (str): actual name of the collection to query
     """
-    # convert keys string to dictionary if present
-    # safely parse keys from request args using json.loads if present
+    # safely parse query from request args using json.loads if present
     query = request.args.get("query")
 
     try:

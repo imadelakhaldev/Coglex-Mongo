@@ -9,6 +9,9 @@ this module provides routing rules and endpoints for archive operations includin
 """
 
 
+# importing required modules
+import json
+
 # importing flask's built-in modules
 from flask import Blueprint, request, jsonify, abort, send_file
 
@@ -31,9 +34,12 @@ def directory():
     """
     list all uploaded files
     """
+    # safely parse query from request args using json.loads if present
+    query = request.args.get("query")
+
     try:
         # listing files
-        req = _list(query=request.json.get("query"))
+        req = _list(json.loads(query) if query else None)
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))

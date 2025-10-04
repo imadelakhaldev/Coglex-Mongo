@@ -12,6 +12,9 @@ with the underlying authentication services
 """
 
 
+# importing required modules
+import json
+
 # importing flask's built-in modules
 from flask import Blueprint, request, jsonify, abort
 
@@ -20,7 +23,7 @@ import config
 
 # importing blueprint utilities used in current routing context
 from coglex import protected
-from coglex.services.auth.utils import _signup, _signin, _retrieve, _refresh
+from coglex.services.auth.utils import _signup, _signin, _retrieve, _refresh, _signout
 
 
 # blueprint instance
@@ -39,8 +42,8 @@ def signup():
     - _password: user password
     - document: optional additional user data
     """
-    # get document from request body
-    _key, _password = request.json.get("_key"), request.json.get("_password")
+    # retreiving user id, password, and additional document from request body
+    _key, _password, document = request.json.get("_key"), request.json.get("_password"), request.json.get("document")
 
     # checking required parameters
     if not _key or not _password:
@@ -48,7 +51,7 @@ def signup():
 
     try:
         # signing up user
-        req = _signup(_key, _password, request.json.get("document"))
+        req = _signup(_key, _password, document)
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
@@ -75,8 +78,8 @@ def signin():
 
     returns user data and session token on success
     """
-    # get document from request body
-    _key, _password = request.json.get("_key"), request.json.get("_password")
+    # retreiving user id, password, and additional query from request body
+    _key, _password, query = request.json.get("_key"), request.json.get("_password"), request.json.get("query")
 
     # checking required parameters
     if not _key or not _password:
@@ -84,7 +87,7 @@ def signin():
 
     try:
         # signing in user
-        req = _signin(_key, _password, request.json.get("query"))
+        req = _signin(_key, _password, query)
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
@@ -112,9 +115,12 @@ def retrieve(_key: str):
 
     returns user data on success
     """
+    # safely parse query from request args using json.loads if present
+    query = request.args.get("query")
+
     try:
         # retrieving user data
-        req = _retrieve(_key, request.json.get("query"))
+        req = _retrieve(_key, json.loads(query) if query else None)
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
@@ -143,8 +149,8 @@ def refresh(_key: str):
 
     returns updated user data on success
     """
-    # get document from request body
-    document = request.json.get("document")
+    # retreiving user id, and additional query from request body
+    document, query = request.json.get("document"), request.json.get("query")
 
     # checking required parameters
     if not document:
@@ -152,7 +158,7 @@ def refresh(_key: str):
 
     try:
         # refreshing user data
-        req = _refresh(_key, document, request.json.get("query"))
+        req = _refresh(_key, document, query)
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
@@ -163,3 +169,17 @@ def refresh(_key: str):
 
     # returning results
     return jsonify(req), 200
+
+
+@_auth.route("/service/auth/v1/signout/", methods=["GET"])
+@_auth.route("/service/auth/v1/signout", methods=["GET"])
+@protected()
+def signout():
+    """
+    this endpoint clears the session token stored on the server side,
+    effectively logging the user out
+
+    returns success confirmation on successful invalidation
+    """
+    # returning success confirmation
+    return jsonify(_signout()), 200

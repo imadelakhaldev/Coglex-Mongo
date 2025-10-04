@@ -104,9 +104,9 @@ def authenticated(collection: str = config.MONGODB_AUTH_COLLECTION):
 
             # if token is missing from headers, try session
             if not token:
-                token = session.get("token")
+                token = session.get(collection)
 
-            # if token is missing from headers or session, return 401
+            # if token is missing from headers and session, return 401
             if not token:
                 return abort(401)
 
