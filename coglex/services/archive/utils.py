@@ -8,6 +8,10 @@ operations utilizing mongodb client for file metadata management and local file 
 # standard imports
 import os
 
+# pip install python-magic
+# file type identification
+import magic
+
 # werkzeug utilities and types
 from werkzeug.datastructures import FileStorage
 from werkzeug.utils import secure_filename
@@ -78,7 +82,8 @@ def _upload(file: FileStorage, collection: str = config.MONGODB_ARCHIVE_COLLECTI
         return _insert(collection, [{
             "_filename": name,
             "_filepath": path,  # store the upload folder path
-            "_filesize": size  # store file size in metadata
+            "_filesize": size,  # store file size in metadata
+            "_filetype": magic.from_file(path, mime=True)  # store file type in metadata
         }])
     except Exception as ex:
         # rethrow exception
