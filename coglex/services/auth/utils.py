@@ -142,7 +142,7 @@ def _refresh(_key: str, document: dict, query: dict = {}, collection: str = conf
 
         # reconstruct given document to hash password if exists
         for operation, fields in document.items():
-            if operation == "$set" and isinstance(fields, dict) and "_password" in fields:
+            if operation == "$set" and isinstance(fields, dict) and fields.get("password"):
                 # clone and hash the password inside $set
                 fields = fields.copy()
                 fields["_password"] = phash(fields["_password"])

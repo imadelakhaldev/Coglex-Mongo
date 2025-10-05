@@ -62,7 +62,7 @@ def _upload(file: FileStorage, collection: str = config.MONGODB_ARCHIVE_COLLECTI
         None: if file size exceeds max file size limit
     """
     try:
-        # check file size against maximum limit
+        # check file size in bytes against maximum limit
         file.seek(0, os.SEEK_END)
         size = file.tell()
         file.seek(0)
@@ -81,9 +81,9 @@ def _upload(file: FileStorage, collection: str = config.MONGODB_ARCHIVE_COLLECTI
         # store metadata in our database system and return the id
         return _insert(collection, [{
             "_filename": name,
-            "_filepath": path,  # store the upload folder path
-            "_filesize": size,  # store file size in metadata
-            "_filetype": magic.from_file(path, mime=True)  # store file type in metadata
+            "_filepath": path,
+            "_filesize": size,
+            "_filetype": magic.from_file(path, mime=True)
         }])
     except Exception as ex:
         # rethrow exception

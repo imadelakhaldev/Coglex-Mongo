@@ -6,6 +6,9 @@ inserting new records, patching existing records, and deleting records
 """
 
 
+# standard imports
+from datetime import datetime, timezone
+
 # generating object ids for document identifiers
 from bson import ObjectId
 
@@ -79,8 +82,11 @@ def _insert(collection: str, documents: list[dict]) -> str | list[str]:
         str or list[str]: inserted id of the record if single document, list of inserted ids if multiple documents
     """
     try:
-        # generate _id for each document and prepare for insertion
-        documents = [{**document, **{"_id": str(ObjectId())}} for document in documents]
+        # generate _id and _inserted for each document and prepare for insertion
+        documents = [
+            {**document, **{"_id": str(ObjectId()), "_inserted": datetime.now(timezone.utc), "_available": True}}
+            for document in documents
+        ]
 
         # insert documents with generated ids
         execution = storage.get_collection(collection).insert_many(documents)
@@ -108,6 +114,13 @@ def _patch(collection: str, document: dict, query: dict = {}) -> int | None:
         int or none: count of records updated if successful, none if no records were updated
     """
     try:
+        if document.get("$set"):
+            # add _patched timestamp if $set exists
+            document["$set"]["_patched"] = datetime.now(timezone.utc)
+        else:
+            # otherwise create $set with _patched timestamp
+            document["$set"] = {"_patched": datetime.now(timezone.utc)}
+
         # update document
         execution = storage.get_collection(collection).update_many(query, document)
 
