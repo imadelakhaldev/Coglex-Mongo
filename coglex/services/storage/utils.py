@@ -84,7 +84,7 @@ def _insert(collection: str, documents: list[dict]) -> str | list[str]:
     try:
         # generate _id and _inserted for each document and prepare for insertion
         documents = [
-            {**document, **{"_id": str(ObjectId()), "_inserted": datetime.now(timezone.utc), "_available": True}}
+            {**document, **{"_id": str(ObjectId()), "_inserted": datetime.now(timezone.utc)}}
             for document in documents
         ]
 
