@@ -6,7 +6,7 @@ this module provides common utility functions and helper methods that are used a
 
 # standard imports
 from typing import Any
-from datetime import datetime, timezone
+from datetime import datetime
 
 # pip install colorama
 # cross-platform terminal colored inputs
@@ -66,23 +66,27 @@ def pcheck(password: str, hashed: str) -> bool:
     return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
 
 
-def jwtenc(payload: Any, expiration: datetime = datetime.now(timezone.utc) + config.SERVER_SESSION_LIFETIME, key: str = config.SERVER_SECRET) -> str:
+def jwtenc(content: Any, expiration: datetime = None, key: str = config.SERVER_SECRET) -> str:
     """
     generate a jwt (json web token) for user authentication
 
     args:
-        payload (any): any data to be encoded in the token
-        expiration (datetime): token expiration timestamp, defaults to current utc time plus global value
+        content (any): any data to be encoded in the token
+        expiration (datetime) (optional): token expiration timestamp, defaults to none (no expiration)
         key (str): secret key used for token encoding
 
     returns:
         str: generated jwt token string encoded with the server secret
     """
+    # prepare payload with content (using "_" as key to store all types of content in the token)
+    payload = {"_": content}
+
+    # add expiration timestamp if provided, if not no expiration will be set
+    if expiration:
+        payload["exp"] = expiration
+
     # generate and return jwt token
-    return jwt.encode({
-        "_": payload,
-        "exp": expiration
-    }, key, algorithm="HS256")
+    return jwt.encode(payload, key, algorithm="HS256")
 
 
 def jwtdec(token: str, key: str = config.SERVER_SECRET) -> Any | None:

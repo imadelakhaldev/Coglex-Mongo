@@ -110,17 +110,21 @@ def authenticated(collection: str = config.MONGODB_AUTH_COLLECTION):
             if not token:
                 return abort(401)
 
-            # decode given token and extract user key from payload, and the rest of the payload params
-            try:
-                _key, _password, query = jwtdec(token)
-            except Exception:
+            # decode given token and
+            payload = jwtdec(token)
+
+            # if payload is empty or invalid, return 401
+            if not payload:
                 return abort(401)
+
+            # extract user key from payload
+            _key = payload.pop("_key")
 
             # importing generic utilities
             from coglex.services.auth.utils import _retrieve
 
-            # authenticate / verify user
-            authentication = _retrieve(_key, {"_password": _password, **query}, collection)
+            # authenticate / verify user using key and the rest of the payload params
+            authentication = _retrieve(_key, payload, collection)
 
             # if user doesn't exist or is inactive to the given query, return 401
             if not authentication:

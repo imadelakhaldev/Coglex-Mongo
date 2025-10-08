@@ -80,7 +80,11 @@ def _signin(_key: str, _password: str, query: dict = {}, collection: str = confi
         # storing hashed password (not a good practice, but it's safe since we are storing the "hashed" password (not plaintext one), into a secured jwt token)
         # storing additonal query (allows us to verify if user is active or not, and other criteria)
         # generate jwt token for later user authentication
-        token = jwtenc((_key, authentication.get("_password"), query))
+        token = jwtenc({
+            "_key": _key,
+            "_password": authentication.get("_password"),
+            **query
+        })
 
         # store generated token in session
         session[collection] = token
