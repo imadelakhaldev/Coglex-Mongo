@@ -5,11 +5,11 @@ includes server, database, smtp and application-specific configurations
 """
 
 
+# standard imports
+import os
+
 # python's built-in time scheduling and management
 from datetime import timedelta
-
-# operating system interactions
-import os
 
 # pip install python-dotenv
 # environment variable management
@@ -44,7 +44,7 @@ SEND_FILE_MAX_AGE = timedelta(days=365)
 SERVER_SECRET = os.environ.get("SERVER_SECRET")
 SERVER_HOST = "0.0.0.0"
 SERVER_PORT = 5000
-SERVER_DEBUG = True # must be set to False in production, True for local testing and development
+SERVER_DEBUG = True  # must be set to False in production, True for local testing and development
 SERVER_SESSION_LIFETIME = timedelta(days=8)
 
 # smtp mailing server credentials
@@ -57,7 +57,6 @@ SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD")
 # mongodb, database client configurations
 MONGODB_URI = os.environ.get("MONGODB_URI")
 MONGODB_DATABASE = APP_FOLDER
-MONGODB_HEX_LENGTH = 12
 MONGODB_AUTH_COLLECTION = "_USERS"
 MONGODB_ARCHIVE_COLLECTION = "_ARCHIVE"
 

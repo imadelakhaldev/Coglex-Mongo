@@ -20,7 +20,7 @@ import config
 from coglex import protected
 
 # importing blueprint utilities used in current routing context
-from coglex.services.archive.utils import _upload, _download, _destroy, _list
+from coglex.services.archive.utils import _list, _upload, _download, _destroy
 
 
 # blueprint instance

@@ -20,9 +20,9 @@ from flask import Blueprint, request, jsonify, abort
 
 # importing base config parameters, and generic utilities
 import config
+from coglex import protected
 
 # importing blueprint utilities used in current routing context
-from coglex import protected
 from coglex.services.auth.utils import _signup, _signin, _retrieve, _refresh, _signout
 
 

@@ -7,8 +7,10 @@ provides endpoints for creating payment intents and processing Stripe webhook ev
 # importing flask's built-in modules
 from flask import Blueprint, request, jsonify, abort
 
-# importing blueprint utilities used in current routing context
+# importing protected route decorator for authentication
 from coglex import protected
+
+# importing blueprint utilities used in current routing context
 from coglex.services.payment.utils import _checkout
 
 

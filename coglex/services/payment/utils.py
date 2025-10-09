@@ -31,7 +31,7 @@ def _checkout(mode: str, success_url: str, cancel_url: str, email: str, linedata
     """
     try:
         # creating a stripe hosted checkout session
-        return stripe.checkout.Session.create(mode=mode, success_url=success_url, cancel_url=cancel_url, customer_email=email, line_items=linedata, metadata=metadata or {})
+        return stripe.checkout.Session.create(mode=mode, success_url=success_url, cancel_url=cancel_url, customer_email=email, line_items=linedata, metadata=metadata)
     except Exception as ex:
         raise ex
 
