@@ -64,6 +64,10 @@ MONGODB_ARCHIVE_COLLECTION = "_ARCHIVE"
 STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY")
 STRIPE_PUBLISHABLE_KEY = os.environ.get("STRIPE_PUBLISHABLE_KEY")
 
+# google gemini api configurations
+GENERATION_MODEL = "models/gemini-2.5-flash"
+GENERATION_KEY = os.environ.get("GENERATION_KEY")
+
 # custom gateway configurations
 # basic settings and configurations
 # MODULE_CONFIG = True
