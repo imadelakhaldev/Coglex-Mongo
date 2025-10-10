@@ -18,8 +18,8 @@ from coglex.services.payment.utils import _checkout
 _payment = Blueprint("_payment", __name__)
 
 
-@_payment.route("/service/payment/v1/", methods=["POST"])
-@_payment.route("/service/payment/v1", methods=["POST"])
+@_payment.route("/service/payment/v1/checkout/", methods=["POST"])
+@_payment.route("/service/payment/v1/checkout", methods=["POST"])
 @protected()
 def checkout():
     """
