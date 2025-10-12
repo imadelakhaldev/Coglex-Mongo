@@ -4,20 +4,22 @@
 ![Flask](https://img.shields.io/badge/flask-2.0+-green.svg)
 ![MongoDB](https://img.shields.io/badge/mongodb-5.0+-brightgreen.svg)
 ![Stripe](https://img.shields.io/badge/stripe-payments-purple.svg)
+![Google-Gemini](https://img.shields.io/badge/google-gemini-ai-orange.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
-A comprehensive, production-ready Flask microservices backend framework designed for secure web development. Coglex provides a modular architecture with built-in authentication, database operations, file management, and payment processing capabilities.
+Coglex is a comprehensive, production-ready Flask microservices backend designed for secure web development. It provides modular services for authentication, data storage, file archival, payments, and AI content generation via Google Gemini, with consistent security, error handling, and configuration.
 
 ## 🚀 Features
 
-- **🔐 Advanced Authentication System**: JWT-based authentication with session management and context-aware user access
-- **📁 Secure File Management**: Complete file upload, download, and archival system with metadata tracking
-- **💳 Stripe Payment Integration**: Full payment processing with checkout sessions and webhook handling
-- **🗄️ MongoDB Integration**: Comprehensive CRUD operations with aggregation pipeline support
-- **🛡️ Multi-layer API Protection**: Route-level security with API key and authentication decorators
-- **🏗️ Microservices Architecture**: Modular service design with independent blueprints
-- **⚡ Production Ready**: Waitress WSGI server for production deployment
-- **🔧 Advanced Session Management**: Built-in Flask session integration with collection-based token storage
+- **🔐 Authentication**: JWT-based auth with session management and context-aware user access
+- **🗄️ Storage**: MongoDB CRUD with aggregation pipeline support and safe query handling
+- **📁 Archive**: Secure file upload, download, deletion, and metadata tracking
+- **💳 Payments**: Stripe Checkout integration with metadata support
+- **🧠 AI Generation**: Google Gemini integration for text, tools, and multimodal content
+- **🛡️ Security**: API key protection, optional user auth, input validation, and safe errors
+- **🏗️ Microservices**: Modular blueprints per service with consistent patterns
+- **⚡ Production Ready**: Waitress WSGI server, environment-driven configuration
+- **🔧 Sessions**: Flask session integration with collection-based token storage
 
 ## 📋 Table of Contents
 
@@ -25,6 +27,7 @@ A comprehensive, production-ready Flask microservices backend framework designed
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Configuration](#configuration)
+- [Authentication & Protection](#authentication--protection)
 - [API Documentation](#api-documentation)
 - [Advanced Features](#advanced-features)
 - [Security Features](#security-features)
@@ -54,9 +57,12 @@ coglex/
 │   │   ├── archive/
 │   │   │   ├── routes.py           # File management endpoints
 │   │   │   └── utils.py            # File operations and metadata
-│   │   └── payment/
-│   │       ├── routes.py           # Stripe payment endpoints
-│   │       └── utils.py            # Payment processing utilities
+│   │   ├── payment/
+│   │   │   ├── routes.py           # Stripe payment endpoints
+│   │   │   └── utils.py            # Payment processing utilities
+│   │   └── generation/
+│   │       ├── routes.py           # Google Gemini endpoints (file & converse)
+│   │       └── utils.py            # Gemini utilities (_file, _converse)
 │   ├── static/                     # Static files and assets
 │   └── templates/                  # Jinja2 templates
 ```
@@ -66,6 +72,7 @@ coglex/
 - **Python 3.8+**
 - **MongoDB 5.0+**
 - **Stripe Account** (for payment processing)
+- **Google AI API Key** (for Gemini generation)
 - **Virtual Environment**
 - **SMTP Server** (for email functionality)
 
@@ -120,6 +127,9 @@ SMTP_PASSWORD=your-smtp-password
 # Stripe Configuration
 STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key
 STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key
+
+# Google Gemini Configuration
+GENERATION_KEY=your-google-ai-api-key
 ```
 
 ### Server Configuration
@@ -129,9 +139,96 @@ The application supports both development and production modes:
 - **Development**: Set `SERVER_DEBUG = True` in `config.py`
 - **Production**: Set `SERVER_DEBUG = False` for Waitress WSGI server
 
+### Application Configuration (config.py)
+
+- `BASE_URL`: Base server URL (default `http://127.0.0.1:5000`)
+- `UPLOAD_FOLDER`: File uploads directory (`coglex/static/documents`)
+- `MAX_CONTENT_LENGTH`: Max upload size (default 16 MB)
+- `SEND_FILE_MAX_AGE_DEFAULT`: Static file cache TTL
+- `MONGODB_DATABASE`: Default database name (default `coglex`)
+- `MONGODB_AUTH_COLLECTION`: Auth users collection (default `_USERS`)
+- `MONGODB_ARCHIVE_COLLECTION`: Files collection (default `_ARCHIVE`)
+- `STRIPE_SECRET_KEY` / `STRIPE_PUBLISHABLE_KEY`: Stripe keys
+- `GENERATION_MODEL`: Default Gemini model (`models/gemini-2.5-flash`)
+- `GENERATION_KEY`: Gemini API key (from env)
+
+## Authentication & Protection
+
+- Include `X-API-Key: <SERVER_SECRET>` on all protected endpoints
+- For user-authenticated endpoints, include `Authorization: Bearer <jwt_token>` or rely on server-side session
+- Decorators available:
+  - `@protected(secret: str | None = None)`: Verifies `X-API-Key` (uses `SERVER_SECRET` by default)
+  - `@authenticated(collection: str = config.MONGODB_AUTH_COLLECTION)`: Validates user session or JWT and provides `g.authentication`
+
 ## 📚 API Documentation
 
 All endpoints require the `X-API-Key` header with your server secret key.
+
+### Generation Service (`/service/generation/v1/`)
+
+#### Upload File
+```http
+POST /service/generation/v1/file
+Content-Type: multipart/form-data
+X-API-Key: your-server-secret
+
+file: [binary file data]
+key: optional-google-ai-api-key
+```
+
+Response:
+```json
+{
+  "fileData": {
+    "fileUri": "ai://file/...",
+    "mimeType": "image/png"
+  }
+}
+```
+
+#### Converse (Generate Content)
+```http
+POST /service/generation/v1/converse
+Content-Type: application/json
+X-API-Key: your-server-secret
+
+{
+  "contents": [
+    {
+      "role": "user",
+      "parts": [
+        {"text": "Describe this image in one sentence."},
+        {"file_data": {"mime_type": "image/png", "file_uri": "ai://file/..."}}
+      ]
+    }
+  ],
+  "system": "You are a helpful assistant.",
+  "tools": [
+    {
+      "name": "getWeather",
+      "description": "Get current weather.",
+      "parameters": {
+        "type": "object",
+        "properties": {"city": {"type": "string"}},
+        "required": ["city"]
+      }
+    }
+  ],
+  "model": "models/gemini-2.5-flash",
+  "key": "optional-google-ai-api-key"
+}
+```
+
+Response:
+```json
+[
+  {"text": "It looks like a sunset over the ocean."}
+]
+```
+
+Notes:
+- `contents` must follow Gemini content JSON format: each item is `{ role, parts }`, where `parts` may contain `{ text }`, `{ file_data }`, `{ function_call }`, or `{ function_response }` objects.
+- If `model` or `key` are omitted, defaults from `config.py` are used.
 
 ### Authentication Service (`/service/auth/v1/`)
 
@@ -291,7 +388,7 @@ X-API-Key: your-server-secret
 
 #### Create Checkout Session
 ```http
-POST /service/payment/v1/
+POST /service/payment/v1/checkout
 Content-Type: application/json
 X-API-Key: your-server-secret
 
@@ -354,9 +451,8 @@ def protected_route():
 
 The framework supports both header-based and session-based authentication:
 
-1. **Header Authentication**: Include `Authorization: Bearer <token>` header
-2. **Session Authentication**: Automatic token retrieval from Flask session
-3. **Dual Fallback**: Headers take precedence, falls back to session if header is missing
+1. Include `Authorization: Bearer <token>` for user-authenticated routes
+2. Session tokens can be used when available; header takes precedence
 
 ### Custom Decorators
 
@@ -475,6 +571,11 @@ All uploaded files include comprehensive metadata:
 - **Webhook Verification**: Signature validation for Stripe webhooks
 - **Metadata Encryption**: Secure handling of payment metadata
 
+### AI Generation Security
+- **Key Isolation**: Gemini API key is loaded from environment and never logged
+- **Input Validation**: `contents` must be well-formed; invalid requests return 400
+- **Error Handling**: Upstream Gemini errors returned as 500 with safe messages
+
 ## 🔧 Development
 
 ### Running in Development Mode
@@ -571,8 +672,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📈 Version History
 
-- **Genesis**: Initial release with core microservices architecture
-- **Features**: Authentication, Storage, Archive, and Payment services
+- **Genesis**: Core microservices architecture (Auth, Storage, Archive, Payment)
+- **AI Generation**: Added Google Gemini service (File upload, Converse)
 - **Security**: Multi-layer protection and JWT authentication
 - **Production**: Waitress WSGI server integration
 
@@ -580,4 +681,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 **Built with ❤️ by IMAD EL AKHAL**
 
-*Coglex Intelligence - Empowering secure web development through modular microservices architecture.*
+*Coglex Intelligence — secure web development with modular microservices and AI.*
