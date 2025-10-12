@@ -9,6 +9,7 @@ inserting new records, patching existing records, and deleting records
 # standard imports
 from datetime import datetime, timezone
 
+# pip install bson
 # generating object ids for document identifiers
 from bson import ObjectId
 
