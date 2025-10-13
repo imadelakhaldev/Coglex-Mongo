@@ -46,6 +46,12 @@ def _signup(_key: str, _password: str, document: dict = {}, collection: str = co
         raise ex
 
 
+# identity / password signin approach; otp and oauth signin approaches are not implemented yet
+# identity verification (e.g., email, phone number) is left to be implemented as a gateway extension for other developers,
+# this is to allow for custom identity verification methods (e.g., email verification, phone number verification)
+# easily create a user with additional "verified" key set to False to require verification, and trigger your verification process (e.g., email, sms)
+# allow user to complete verification process through custom endpoints and refresh "verified" status to True
+# on signin, only allow signin if user is verified using additional query
 def _signin(_key: str, _password: str, query: dict = {}, collection: str = config.MONGODB_AUTH_COLLECTION) -> str | None:
     """
     authenticates a user by validating their credentials and issues a jwt token
