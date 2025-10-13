@@ -120,6 +120,10 @@ def authenticated(collection: str = config.MONGODB_AUTH_COLLECTION):
             # extract user key from content
             _key = content.pop("_key")
 
+            # if user key is missing from content, return 401
+            if not _key:
+                return abort(401)
+
             # importing generic utilities
             from coglex.services.auth.utils import _retrieve
 

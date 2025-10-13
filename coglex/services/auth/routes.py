@@ -23,7 +23,7 @@ import config
 from coglex import protected
 
 # importing blueprint utilities used in current routing context
-from coglex.services.auth.utils import _signup, _signin, _retrieve, _refresh, _signout
+from coglex.services.auth.utils import _signup, _signin, _retrieve, _refresh, _passgen, _passver, _signout
 
 
 # blueprint instance
@@ -39,19 +39,18 @@ def signup():
 
     expects json payload with:
     - _key: unique identifier for the user
-    - _password: user password
     - document: optional additional user data
     """
-    # retreiving user id, password, and additional document from request body
-    _key, _password, document = request.json.get("_key"), request.json.get("_password"), request.json.get("document")
+    # retreiving user id, and additional document from request body (might contain _password for password-enabled auth)
+    _key, document = request.json.get("_key"), request.json.get("document")
 
     # checking required parameters
-    if not _key or not _password:
+    if not _key:
         return abort(400)
 
     try:
         # signing up user
-        req = _signup(_key, _password, document)
+        req = _signup(_key, document)
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
@@ -73,21 +72,20 @@ def signin():
 
     expects json payload with:
     - _key: unique identifier for the user
-    - _password: user password
     - query: optional additional filter criteria
 
     returns user data and session token on success
     """
-    # retreiving user id, password, and additional query from request body
-    _key, _password, query = request.json.get("_key"), request.json.get("_password"), request.json.get("query")
+    # retreiving user id, and additional query from request body (might contain _password for password-enabled auth)
+    _key, query = request.json.get("_key"), request.json.get("query")
 
     # checking required parameters
-    if not _key or not _password:
+    if not _key:
         return abort(400)
 
     try:
         # signing in user
-        req = _signin(_key, _password, query)
+        req = _signin(_key, query)
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
@@ -168,6 +166,73 @@ def refresh(_key: str):
         return abort(404)
 
     # returning results
+    return jsonify(req), 200
+
+@_auth.route("/service/auth/v1/verification/<_key>/", methods=["GET"])
+@_auth.route("/service/auth/v1/verification/<_key>", methods=["GET"])
+@protected()
+def generation(_key: str):
+    """
+    generate a one-time passcode (OTP) for the specified user
+
+    expects path parameter:
+    - _key: unique identifier for the user
+
+    expects query parameter:
+    - query: optional additional filter criteria
+
+    returns the generated otp details on success
+    """
+    # safely parse query from request args using json.loads if present
+    query = request.args.get("query")
+
+    try:
+        # generate otp for user
+        req = _passgen(_key, json.loads(query) if query else None)
+    except Exception as ex:
+        # rethrow exception
+        return abort(500, description=str(ex))
+
+    # if otp generation failed because user retrieval, return error
+    if not req:
+        return abort(404)
+
+    # return success response
+    return jsonify(req), 200
+
+
+@_auth.route("/service/auth/v1/verification/<_key>/<passcode>/", methods=["GET"])
+@_auth.route("/service/auth/v1/verification/<_key>/<passcode>", methods=["GET"])
+@protected()
+def verification(_key: str, passcode: str):
+    """
+    verify a one-time passcode (otp) for the specified user
+
+    expects path parameters:
+    - _key: unique identifier for the user
+    - passcode: the otp code to verify
+
+    expects query parameter:
+    - query: optional additional filter criteria
+
+    returns verification result on success
+    """
+    # safely parse query from request args using json.loads if present
+    query = request.args.get("query")
+
+    # retrieve parameters from request body
+    try:
+        # verify otp code
+        req = _passver(_key, passcode, json.loads(query) if query else None)
+    except Exception as ex:
+        # rethrow exception
+        return abort(500, description=str(ex))
+
+    # if verification failed, return error
+    if not req:
+        return abort(400)
+
+    # return success response
     return jsonify(req), 200
 
 

@@ -60,6 +60,11 @@ MONGODB_DATABASE = APP_FOLDER
 MONGODB_AUTH_COLLECTION = "_USERS"
 MONGODB_ARCHIVE_COLLECTION = "_ARCHIVE"
 
+# verification / one-time-password (otp) authentication configurations
+VERIFICATION_LENGTH = 6
+VERIFICATION_EXPIRY = timedelta(minutes=10)
+VERIFICATION_ATTEMPTS = 3
+
 # stripe payment api keys
 STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY")
 STRIPE_PUBLISHABLE_KEY = os.environ.get("STRIPE_PUBLISHABLE_KEY")
@@ -67,6 +72,7 @@ STRIPE_PUBLISHABLE_KEY = os.environ.get("STRIPE_PUBLISHABLE_KEY")
 # google gemini api configurations
 GENERATION_MODEL = "models/gemini-2.5-flash"
 GENERATION_KEY = os.environ.get("GENERATION_KEY")
+
 
 # custom gateway configurations
 # basic settings and configurations

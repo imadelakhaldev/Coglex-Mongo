@@ -1,9 +1,15 @@
 """
 authentication service module for managing user authentication operations
-this module provides functionality for user authentication including signup and signin
-operations utilizing mongodb client for user management and authentication
+this module provides functionality for user authentication including signup, signin,
+and otp verification utilizing mongodb client for user management
 """
 
+
+# standard imports
+import secrets
+import hashlib
+import hmac
+from datetime import datetime, timezone, timedelta
 
 # flask built-in session module
 from flask import session
@@ -18,14 +24,13 @@ from utils import pcheck, phash, jwtenc
 import config
 
 
-def _signup(_key: str, _password: str, document: dict = {}, collection: str = config.MONGODB_AUTH_COLLECTION) -> str | None:
+def _signup(_key: str, document: dict = {}, collection: str = config.MONGODB_AUTH_COLLECTION) -> str | None:
     """
     creates a new user document in the specified collection, handles user registration by storing their information in the database
 
     args:
         _key (str): unique identifier for the user (e.g., email or username)
-        _password (str): user's password for authentication 
-        document (dict) (optional): additional user information to store
+        document (dict) (optional): additional user information to store, might contain "_password" key for password enabled authentication, anonymous if not
         collection (str): the name of the collection to store the user document
 
     returns:
@@ -36,8 +41,12 @@ def _signup(_key: str, _password: str, document: dict = {}, collection: str = co
         if _find(collection, {"_key": _key}):
             return None
 
-        # hash the password before storing
-        _password = phash(_password)
+        # extract password from document if present, and remove it from document
+        _password = document.pop("_password", None)
+
+        # hash password if present before storing
+        if _password:
+            _password = phash(_password)
 
         # inject _key and _password to document and create new user
         return _insert(collection, [{"_key": _key, "_password": _password, **document}])
@@ -46,19 +55,21 @@ def _signup(_key: str, _password: str, document: dict = {}, collection: str = co
         raise ex
 
 
-# identity / password signin approach; otp and oauth signin approaches are not implemented yet
+# identity / password signin approach implemented
+# otp and oauth signin approaches are not implemented
+# identity verification is not implemented
+
 # identity verification (e.g., email, phone number) is left to be implemented as a gateway extension for other developers,
 # this is to allow for custom identity verification methods (e.g., email verification, phone number verification)
-# easily create a user with additional "verified" key set to False to require verification, and trigger your verification process (e.g., email, sms)
-# allow user to complete verification process through custom endpoints and refresh "verified" status to True
+# easily create a user with additional "verified" key set to False to require verification, and trigger verification process (e.g., email, sms)
+# utilize verification / otp utilities for generating and verifying codes for either otp or verification processes
 # on signin, only allow signin if user is verified using additional query
-def _signin(_key: str, _password: str, query: dict = {}, collection: str = config.MONGODB_AUTH_COLLECTION) -> str | None:
+def _signin(_key: str, query: dict = {}, collection: str = config.MONGODB_AUTH_COLLECTION) -> str | None:
     """
     authenticates a user by validating their credentials and issues a jwt token
 
     args:
         _key (str): unique identifier for the user (e.g., email or username)
-        _password (str): user's password for authentication
         query (dict) (optional): additional query parameters to filter user documents for example active=True to only allow signin for active users
         collection (str): name of the collection to authenticate against
 
@@ -66,6 +77,9 @@ def _signin(_key: str, _password: str, query: dict = {}, collection: str = confi
         str | None: jwt token string upon successful authentication, None if authentication fails
     """
     try:
+        # extract password from query if present, and remove it from query
+        _password = query.pop("_password", None)
+
         # find user without password in query
         authentication = _find(collection, {"_key": _key, **query})
 
@@ -78,12 +92,14 @@ def _signin(_key: str, _password: str, query: dict = {}, collection: str = confi
             # this shouldn't happen if _key is unique, but good to handle
             return None
 
-        # verify password hash matches
-        if not pcheck(_password, authentication.get("_password")):
-            return None
+        # verify if password is present
+        if _password:
+            # verify password hash matches
+            if not pcheck(_password, authentication.get("_password")):
+                return None
 
         # storing user identifier
-        # storing hashed password (not a good practice, but it's safe since we are storing the "hashed" password (not plaintext one), into a secured jwt token)
+        # storing hashed password (allows us to password change)
         # storing additonal query (allows us to verify if user is active or not, and other criteria)
         # generate jwt token for later user authentication
         token = jwtenc({
@@ -162,6 +178,102 @@ def _refresh(_key: str, document: dict, query: dict = {}, collection: str = conf
 
         # update user document
         return _patch(collection, construction, {"_key": _key})
+    except Exception as ex:
+        raise ex
+
+
+def _passgen(_key: str, query: dict = {}, length: int = config.VERIFICATION_LENGTH, expiry: timedelta = config.VERIFICATION_EXPIRY, collection: str = config.MONGODB_AUTH_COLLECTION) -> str | None:
+    """
+    generates a verification code for otp or user verification and stores it in the database
+
+    args:
+        _key (str): unique identifier for the user (e.g., email or username)
+        query (dict) (optional): additional query parameters to filter user documents
+        length (int): length of the verification code
+        expiry (timedelta): expiry time for the verification code
+        collection (str): name of the collection to store verification data
+
+    returns:
+        str | None: generated verification code if successful, None if user not found or generation fails
+    """
+    try:
+        # check if user exists
+        authentication = _find(collection, {"_key": _key, **query})
+
+        # if no user found or multiple users found (shouldn't happen with unique _key)
+        if not authentication or isinstance(authentication, list):
+            return None
+
+        # generate random otp code
+        passcode = "".join([str(secrets.randbelow(10)) for _ in range(length)])
+
+        # hash the otp for secure storage
+        _encryption = hashlib.sha256(passcode.encode()).hexdigest()
+
+        # update user document with otp data and return code if successful
+        if _patch(collection, {
+            "$set": {
+                "_otp_hash": _encryption,
+                "_otp_expiry": datetime.now(timezone.utc) + expiry,  # caluclating expiry time
+                "_otp_attempts": 0,
+            }
+        }, {"_key": _key}): return passcode
+
+        # return None if update failed
+        return None
+    except Exception as ex:
+        raise ex
+
+
+def _passver(_key: str, passcode: str, query: dict = {}, attempts: int = config.VERIFICATION_ATTEMPTS, collection: str = config.MONGODB_AUTH_COLLECTION) -> bool:
+    """
+    verifies the provided verification code against the stored hash for the user
+
+    args:
+        _key (str): unique identifier for the user
+        passcode (str): verification code to verify
+        query (dict) (optional): additional query parameters to filter user documents
+        attempts (int): maximum verification attempts allowed
+        collection (str): name of the collection containing user data
+
+    returns:
+        bool: True if otp is valid and not expired, False otherwise
+    """
+    try:
+        # find user with otp data
+        authentication = _find(collection, {"_key": _key, **query})
+
+        # if no user found or multiple users found (shouldn't happen with unique _key)
+        if not authentication or isinstance(authentication, list):
+            return False
+
+        # check if verification hash exists
+        if not authentication.get("_otp_hash"):
+            return False
+
+        # check if otp has expired
+        if datetime.now(timezone.utc) > authentication.get("_otp_expiry", datetime.now(timezone.utc)):
+            # optional otp credentials cleanup removed
+            return False
+
+        # check attempt limit
+        if authentication.get("_otp_attempts", 0) >= attempts:
+            # optional otp credentials cleanup removed
+            return False
+
+        # verify otp hash
+        otp_hash = hashlib.sha256(passcode.encode()).hexdigest()
+        if hmac.compare_digest(authentication.get("_otp_hash"), otp_hash):
+            # otp is valid, optional otp credentials cleanup removed
+            return True
+
+        # increment attempt counter in case of failed otp verification (hash mismatch)
+        _patch(collection, {
+            "$inc": {"_otp_attempts": 1}
+        }, {"_key": _key})
+
+        # returning failure
+        return False
     except Exception as ex:
         raise ex
 
