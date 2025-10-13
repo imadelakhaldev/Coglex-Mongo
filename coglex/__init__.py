@@ -15,7 +15,7 @@ from functools import wraps
 
 # pip install flask
 # micro server routing, services, templating, and http serving toolkit
-from flask import Flask, request, abort, session, g
+from flask import Flask, request, session, g, abort
 
 # pip install pymongo
 # initialize mongodb client
