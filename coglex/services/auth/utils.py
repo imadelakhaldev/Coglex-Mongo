@@ -262,8 +262,7 @@ def _passver(_key: str, passcode: str, query: dict = {}, attempts: int = config.
             return False
 
         # verify otp hash
-        otp_hash = hashlib.sha256(passcode.encode()).hexdigest()
-        if hmac.compare_digest(authentication.get("_otp_hash"), otp_hash):
+        if hmac.compare_digest(authentication.get("_otp_hash"), hashlib.sha256(passcode.encode()).hexdigest()):
             # otp is valid, optional otp credentials cleanup removed
             return True
 
