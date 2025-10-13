@@ -24,13 +24,14 @@ from utils import pcheck, phash, jwtenc
 import config
 
 
-def _signup(_key: str, document: dict = {}, collection: str = config.MONGODB_AUTH_COLLECTION) -> str | None:
+def _signup(_key: str, _password: str = None, document: dict = {}, collection: str = config.MONGODB_AUTH_COLLECTION) -> str | None:
     """
     creates a new user document in the specified collection, handles user registration by storing their information in the database
 
     args:
         _key (str): unique identifier for the user (e.g., email or username)
-        document (dict) (optional): additional user information to store, might contain "_password" key for password enabled authentication, anonymous if not
+        _password (str) (optional): password for the user account, None if not password enabled authentication
+        document (dict) (optional): additional user information to store
         collection (str): the name of the collection to store the user document
 
     returns:
@@ -40,9 +41,6 @@ def _signup(_key: str, document: dict = {}, collection: str = config.MONGODB_AUT
         # check if user already exists
         if _find(collection, {"_key": _key}):
             return None
-
-        # extract password from document if present, and remove it from document
-        _password = document.pop("_password", None)
 
         # hash password if present before storing
         if _password:
@@ -64,12 +62,13 @@ def _signup(_key: str, document: dict = {}, collection: str = config.MONGODB_AUT
 # easily create a user with additional "verified" key set to False to require verification, and trigger verification process (e.g., email, sms)
 # utilize verification / otp utilities for generating and verifying codes for either otp or verification processes
 # on signin, only allow signin if user is verified using additional query
-def _signin(_key: str, query: dict = {}, collection: str = config.MONGODB_AUTH_COLLECTION) -> str | None:
+def _signin(_key: str, _password: str = None, query: dict = {}, collection: str = config.MONGODB_AUTH_COLLECTION) -> str | None:
     """
     authenticates a user by validating their credentials and issues a jwt token
 
     args:
         _key (str): unique identifier for the user (e.g., email or username)
+        _password (str) (optional): password for the user account, None if not password enabled authentication
         query (dict) (optional): additional query parameters to filter user documents for example active=True to only allow signin for active users
         collection (str): name of the collection to authenticate against
 
@@ -77,9 +76,6 @@ def _signin(_key: str, query: dict = {}, collection: str = config.MONGODB_AUTH_C
         str | None: jwt token string upon successful authentication, None if authentication fails
     """
     try:
-        # extract password from query if present, and remove it from query
-        _password = query.pop("_password", None)
-
         # find user without password in query
         authentication = _find(collection, {"_key": _key, **query})
 
@@ -168,7 +164,7 @@ def _refresh(_key: str, document: dict, query: dict = {}, collection: str = conf
 
         # reconstruct given document to hash password if exists
         for operation, fields in document.items():
-            if operation == "$set" and isinstance(fields, dict) and fields.get("password"):
+            if operation == "$set" and isinstance(fields, dict) and fields.get("_password"):
                 # clone and hash the password inside $set
                 fields = fields.copy()
                 fields["_password"] = phash(fields["_password"])

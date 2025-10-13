@@ -39,10 +39,11 @@ def signup():
 
     expects json payload with:
     - _key: unique identifier for the user
+    - _password: password for the user account, None if not password enabled authentication
     - document: optional additional user data
     """
     # retreiving user id, and additional document from request body (might contain _password for password-enabled auth)
-    _key, document = request.json.get("_key"), request.json.get("document")
+    _key, _password, document = request.json.get("_key"), request.json.get("_password"), request.json.get("document")
 
     # checking required parameters
     if not _key:
@@ -50,7 +51,7 @@ def signup():
 
     try:
         # signing up user
-        req = _signup(_key, document)
+        req = _signup(_key, _password, document)
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
@@ -72,12 +73,13 @@ def signin():
 
     expects json payload with:
     - _key: unique identifier for the user
+    - _password: password for the user account, None if not password enabled authentication
     - query: optional additional filter criteria
 
     returns user data and session token on success
     """
     # retreiving user id, and additional query from request body (might contain _password for password-enabled auth)
-    _key, query = request.json.get("_key"), request.json.get("query")
+    _key, _password, query = request.json.get("_key"), request.json.get("_password"), request.json.get("query")
 
     # checking required parameters
     if not _key:
@@ -85,7 +87,7 @@ def signin():
 
     try:
         # signing in user
-        req = _signin(_key, query)
+        req = _signin(_key, _password, query)
     except Exception as ex:
         # rethrow exception
         return abort(500, description=str(ex))
