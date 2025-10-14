@@ -63,7 +63,6 @@ MONGODB_ARCHIVE_COLLECTION = "_ARCHIVE"
 # verification / one-time-password (otp) authentication configurations
 VERIFICATION_LENGTH = 6
 VERIFICATION_EXPIRY = timedelta(minutes=10)
-VERIFICATION_ATTEMPTS = 3
 
 # oauth provider configurations
 OAUTH_CONFIG = {
