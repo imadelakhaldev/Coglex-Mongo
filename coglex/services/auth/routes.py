@@ -23,7 +23,7 @@ import config
 from coglex import protected
 
 # importing blueprint utilities used in current routing context
-from coglex.services.auth.utils import _signup, _signin, _retrieve, _refresh, _passgen, _passver, _signout
+from coglex.services.auth.utils import _signup, _signin, _retrieve, _refresh, _signout
 
 
 # blueprint instance
@@ -168,73 +168,6 @@ def refresh(_key: str):
         return abort(404)
 
     # returning results
-    return jsonify(req), 200
-
-@_auth.route("/service/auth/v1/verification/<_key>/", methods=["GET"])
-@_auth.route("/service/auth/v1/verification/<_key>", methods=["GET"])
-@protected()
-def generation(_key: str):
-    """
-    generate a one-time passcode (OTP) for the specified user
-
-    expects path parameter:
-    - _key: unique identifier for the user
-
-    expects query parameter:
-    - query: optional additional filter criteria
-
-    returns the generated otp details on success
-    """
-    # safely parse query from request args using json.loads if present
-    query = request.args.get("query")
-
-    try:
-        # generate otp for user
-        req = _passgen(_key, json.loads(query) if query else None)
-    except Exception as ex:
-        # rethrow exception
-        return abort(500, description=str(ex))
-
-    # if otp generation failed because user retrieval, return error
-    if not req:
-        return abort(404)
-
-    # return success response
-    return jsonify(req), 200
-
-
-@_auth.route("/service/auth/v1/verification/<_key>/<passcode>/", methods=["GET"])
-@_auth.route("/service/auth/v1/verification/<_key>/<passcode>", methods=["GET"])
-@protected()
-def verification(_key: str, passcode: str):
-    """
-    verify a one-time passcode (otp) for the specified user
-
-    expects path parameters:
-    - _key: unique identifier for the user
-    - passcode: the otp code to verify
-
-    expects query parameter:
-    - query: optional additional filter criteria
-
-    returns verification result on success
-    """
-    # safely parse query from request args using json.loads if present
-    query = request.args.get("query")
-
-    # retrieve parameters from request body
-    try:
-        # verify otp code
-        req = _passver(_key, passcode, json.loads(query) if query else None)
-    except Exception as ex:
-        # rethrow exception
-        return abort(500, description=str(ex))
-
-    # if verification failed, return error
-    if not req:
-        return abort(400)
-
-    # return success response
     return jsonify(req), 200
 
 

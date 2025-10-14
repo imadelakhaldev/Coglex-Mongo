@@ -7,18 +7,22 @@ and otp verification utilizing mongodb client for user management
 
 # standard imports
 import secrets
-import hashlib
-import hmac
-from datetime import datetime, timezone, timedelta
+from datetime import timedelta
+
+# url parsing and encoding utilities
+from urllib.parse import urlencode
 
 # flask built-in session module
 from flask import session
+
+# third-party imports for oauth
+import requests
 
 # mongodb storage module
 from coglex.services.storage.utils import _insert, _find, _patch
 
 # local helper imports
-from utils import pcheck, phash, jwtenc
+from utils import pcheck, phash, jwtenc, jwtdec
 
 # global confirgurations
 import config
@@ -53,15 +57,7 @@ def _signup(_key: str, _password: str = None, document: dict = {}, collection: s
         raise ex
 
 
-# identity / password signin approach implemented
-# otp and oauth signin approaches are not implemented
-# identity verification is not implemented
-
-# identity verification (e.g., email, phone number) is left to be implemented as a gateway extension for other developers,
-# this is to allow for custom identity verification methods (e.g., email verification, phone number verification)
-# easily create a user with additional "verified" key set to False to require verification, and trigger verification process (e.g., email, sms)
-# utilize verification / otp utilities for generating and verifying codes for either otp or verification processes
-# on signin, only allow signin if user is verified using additional query
+# identity / password signin approach implemnentation
 def _signin(_key: str, _password: str = None, query: dict = {}, collection: str = config.MONGODB_AUTH_COLLECTION) -> str | None:
     """
     authenticates a user by validating their credentials and issues a jwt token
@@ -102,7 +98,7 @@ def _signin(_key: str, _password: str = None, query: dict = {}, collection: str 
             "_key": _key,
             "_password": authentication.get("_password"),
             **query
-        })
+        }, config.SERVER_SESSION_LIFETIME)
 
         # store generated token in session
         session[collection] = token
@@ -178,98 +174,158 @@ def _refresh(_key: str, document: dict, query: dict = {}, collection: str = conf
         raise ex
 
 
-def _passgen(_key: str, query: dict = {}, length: int = config.VERIFICATION_LENGTH, expiry: timedelta = config.VERIFICATION_EXPIRY, collection: str = config.MONGODB_AUTH_COLLECTION) -> str | None:
+# otp and verification utilities implementation
+def _passgen(length: int = config.VERIFICATION_LENGTH, expiry: timedelta = config.VERIFICATION_EXPIRY) -> tuple(str, str):
     """
-    generates a verification code for otp or user verification and stores it in the database
+    generates a stateless otp using jwt encoding without database storage
 
     args:
-        _key (str): unique identifier for the user (e.g., email or username)
-        query (dict) (optional): additional query parameters to filter user documents
-        length (int): length of the verification code
-        expiry (timedelta): expiry time for the verification code
-        collection (str): name of the collection to store verification data
+        length (int): length of the otp code
+        expiry (timedelta): expiry time for the otp
 
     returns:
-        str | None: generated verification code if successful, None if user not found or generation fails
+        tuple(str, str): tuple containing otp code and jwt token if successful
     """
     try:
-        # check if user exists
-        authentication = _find(collection, {"_key": _key, **query})
-
-        # if no user found or multiple users found (shouldn't happen with unique _key)
-        if not authentication or isinstance(authentication, list):
-            return None
-
         # generate random otp code
         passcode = "".join([str(secrets.randbelow(10)) for _ in range(length)])
 
-        # hash the otp for secure storage
-        _encryption = hashlib.sha256(passcode.encode()).hexdigest()
-
-        # update user document with otp data and return code if successful
-        if _patch(collection, {
-            "$set": {
-                "_otp_hash": _encryption,
-                "_otp_expiry": datetime.now(timezone.utc) + expiry,  # caluclating expiry time
-                "_otp_attempts": 0,
-            }
-        }, {"_key": _key}): return passcode
-
-        # return None if update failed
-        return None
+        # encode passcode jwt with expiry and return actual code and token
+        return (passcode, jwtenc(passcode, expiry))
     except Exception as ex:
+        # rethrow exception
         raise ex
 
 
-def _passver(_key: str, passcode: str, query: dict = {}, attempts: int = config.VERIFICATION_ATTEMPTS, collection: str = config.MONGODB_AUTH_COLLECTION) -> bool:
+def _passver(passcode: str, token: str) -> bool:
     """
-    verifies the provided verification code against the stored hash for the user
+    verifies a stateless otp using jwt decoding without database lookup
 
     args:
-        _key (str): unique identifier for the user
-        passcode (str): verification code to verify
-        query (dict) (optional): additional query parameters to filter user documents
-        attempts (int): maximum verification attempts allowed
-        collection (str): name of the collection containing user data
+        passcode (str): otp code to verify
+        token (str): jwt token containing otp data
 
     returns:
-        bool: True if otp is valid and not expired, False otherwise
+        bool: True if otp is valid, False otherwise
     """
     try:
-        # find user with otp data
-        authentication = _find(collection, {"_key": _key, **query})
-
-        # if no user found or multiple users found (shouldn't happen with unique _key)
-        if not authentication or isinstance(authentication, list):
-            return False
-
-        # check if verification hash exists
-        if not authentication.get("_otp_hash"):
-            return False
-
-        # check if otp has expired
-        if datetime.now(timezone.utc) > authentication.get("_otp_expiry", datetime.now(timezone.utc)):
-            # optional otp credentials cleanup removed
-            return False
-
-        # check attempt limit
-        if authentication.get("_otp_attempts", 0) >= attempts:
-            # optional otp credentials cleanup removed
-            return False
-
-        # verify otp hash
-        if hmac.compare_digest(authentication.get("_otp_hash"), hashlib.sha256(passcode.encode()).hexdigest()):
-            # otp is valid, optional otp credentials cleanup removed
+        # decode actual passcode from token, and verify it with provided passcode
+        if passcode == jwtdec(token):
             return True
 
-        # increment attempt counter in case of failed otp verification (hash mismatch)
-        _patch(collection, {
-            "$inc": {"_otp_attempts": 1}
-        }, {"_key": _key})
-
-        # returning failure
+        # otp is invalid, not equal to tokenized passcode
         return False
     except Exception as ex:
+        # rethrow exception
+        raise ex
+
+
+def _oauth(provider: str, redirect_uri: str) -> str | None:
+    """
+    generates oauth authorization url for the specified provider
+
+    args:
+        provider (str): oauth provider name (google, facebook)
+        redirect_uri (str): callback url for oauth flow
+
+    returns:
+        str | None: authorization url if provider is valid, None otherwise
+    """
+    try:
+        # validate provider
+        if provider not in config.OAUTH_CONFIG:
+            return None
+
+        # generate jwt-based state for csrf protection if not provided
+        state = jwtenc({
+            "provider": provider,
+            "redirect_uri": redirect_uri,
+            "nonce": secrets.token_urlsafe(16)
+        })
+
+        # get provider configuration
+        provider_config = config.OAUTH_CONFIG[provider]
+
+        # build authorization parameters
+        params = {
+            "client_id": provider_config["CLIENT_ID"],
+            "redirect_uri": redirect_uri,
+            "scope": provider_config["SCOPES"],
+            "response_type": "code",
+            "state": state
+        }
+
+        # return authorization url
+        return f"{provider_config['AUTHORIZE_URL']}?{urlencode(params)}"
+    except Exception as ex:
+        # rethrow exception
+        raise ex
+
+
+def _ocall(code: str, state: str) -> dict | None:
+    """
+    handles oauth callback by exchanging authorization code for access token and retrieving user info
+
+    args:
+        code (str): authorization code from oauth provider
+        state (str): state parameter for csrf verification
+        redirect_uri (str): callback url used in authorization
+
+    returns:
+        dict | None: user information dictionary with normalized fields (name, email, provider), None if verification fails
+    """
+    try:
+        # decode and verify jwt state for csrf protection
+        state = jwtdec(state)
+
+        # verify state payload contains required fields and nonce
+        if not state or not state.get("provider") or not state.get("redirect_uri") or not state.get("nonce"):
+            return None
+
+        # validate provider
+        if state.get("provider") not in config.OAUTH_CONFIG:
+            return None
+
+        # get provider configuration
+        provider_config = config.OAUTH_CONFIG[state.get("provider")]
+
+        # exchange code for access token
+        token_data = {
+            "code": code,
+            "client_id": provider_config["CLIENT_ID"],
+            "client_secret": provider_config["CLIENT_SECRET"],
+            "redirect_uri": state.get("redirect_uri"),
+            "grant_type": "authorization_code"
+        }
+
+        # request access token
+        token_response = requests.post(provider_config["TOKEN_URL"], data=token_data, headers={}, timeout=12)
+        token_json = token_response.json()
+        access_token = token_json.get("access_token")
+
+        # check for access token
+        if not access_token:
+            return None
+
+        # get user info using access token
+        user_response = requests.get(provider_config["USERINFO_URL"], headers={"Authorization": f"Bearer {access_token}"}, timeout=12)
+        user_info = user_response.json()
+
+        # check for user info
+        if not user_info:
+            return None
+
+        # normalize user data (different providers return different fields)
+        normalized_user = {
+            "name": user_info.get("name") or user_info.get("login") or "User",
+            "email": user_info.get("email") or "No email provided",
+            "provider": state.get("provider"),
+            "provider_id": str(user_info.get("id", ""))
+        }
+
+        return normalized_user
+    except Exception as ex:
+        # rethrow exception
         raise ex
 
 

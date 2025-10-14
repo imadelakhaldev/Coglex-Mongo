@@ -65,6 +65,26 @@ VERIFICATION_LENGTH = 6
 VERIFICATION_EXPIRY = timedelta(minutes=10)
 VERIFICATION_ATTEMPTS = 3
 
+# oauth provider configurations
+OAUTH_CONFIG = {
+    "google": {
+        "CLIENT_ID": os.environ.get("GOOGLE_CLIENT_ID"),
+        "CLIENT_SECRET": os.environ.get("GOOGLE_CLIENT_SECRET"),
+        "AUTHORIZE_URL": "https://accounts.google.com/o/oauth2/v2/auth",
+        "TOKEN_URL": "https://oauth2.googleapis.com/token",
+        "INFO_URL": "https://www.googleapis.com/oauth2/v2/userinfo",
+        "SCOPES": "openid email profile"
+    },
+    "facebook": {
+        "CLIENT_ID": os.environ.get("FACEBOOK_CLIENT_ID"),
+        "CLIENT_SECRET": os.environ.get("FACEBOOK_CLIENT_SECRET"),
+        "AUTHORIZE_URL": "https://www.facebook.com/v18.0/dialog/oauth",
+        "TOKEN_URL": "https://graph.facebook.com/v18.0/oauth/access_token",
+        "INFO_URL": "https://graph.facebook.com/me?fields=id,name,email",
+        "SCOPES": "email public_profile"
+    }
+}
+
 # stripe payment api keys
 STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY")
 STRIPE_PUBLISHABLE_KEY = os.environ.get("STRIPE_PUBLISHABLE_KEY")
