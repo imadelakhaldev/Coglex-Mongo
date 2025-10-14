@@ -175,7 +175,7 @@ def _refresh(_key: str, document: dict, query: dict = {}, collection: str = conf
 
 
 # otp and verification utilities implementation
-def _passgen(length: int = config.VERIFICATION_LENGTH, expiry: timedelta = config.VERIFICATION_EXPIRY) -> tuple(str, str):
+def _passgen(length: int = config.VERIFICATION_LENGTH, expiry: timedelta = config.VERIFICATION_EXPIRY) -> tuple[str, str]:
     """
     generates a stateless otp using jwt encoding without database storage
 
