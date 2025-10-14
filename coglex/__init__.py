@@ -152,6 +152,7 @@ from coglex.services.auth.routes import _auth
 from coglex.services.storage.routes import _storage
 from coglex.services.archive.routes import _archive
 from coglex.services.payment.routes import _payment
+from coglex.services.generation.routes import _generation
 
 # importing gateway modules
 # from coglex.gateway.module.routes import module
@@ -161,6 +162,7 @@ application.register_blueprint(_auth)
 application.register_blueprint(_storage)
 application.register_blueprint(_archive)
 application.register_blueprint(_payment)
+application.register_blueprint(_generation)
 
 # register gateway blueprints with application
 # application.register_blueprint(module)

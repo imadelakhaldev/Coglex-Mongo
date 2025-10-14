@@ -1,25 +1,25 @@
 # Coglex Intelligence
 
 ![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
-![Flask](https://img.shields.io/badge/flask-2.0+-green.svg)
+![Flask](https://img.shields.io/badge/flask-3.1+-green.svg)
 ![MongoDB](https://img.shields.io/badge/mongodb-5.0+-brightgreen.svg)
 ![Stripe](https://img.shields.io/badge/stripe-payments-purple.svg)
 ![Google-Gemini](https://img.shields.io/badge/google-gemini-ai-orange.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
-Coglex is a comprehensive, production-ready Flask microservices backend designed for secure web development. It provides modular services for authentication, data storage, file archival, payments, and AI content generation via Google Gemini, with consistent security, error handling, and configuration.
+Coglex is a comprehensive, production-ready Flask microservices backend framework designed for secure web development. It provides modular services for authentication, data storage, file archival, payments, and AI content generation via Google Gemini, with consistent security, error handling, and configuration management.
 
 ## 🚀 Features
 
-- **🔐 Authentication**: JWT-based auth with session management and context-aware user access
-- **🗄️ Storage**: MongoDB CRUD with aggregation pipeline support and safe query handling
-- **📁 Archive**: Secure file upload, download, deletion, and metadata tracking
-- **💳 Payments**: Stripe Checkout integration with metadata support
-- **🧠 AI Generation**: Google Gemini integration for text, tools, and multimodal content
-- **🛡️ Security**: API key protection, optional user auth, input validation, and safe errors
-- **🏗️ Microservices**: Modular blueprints per service with consistent patterns
-- **⚡ Production Ready**: Waitress WSGI server, environment-driven configuration
-- **🔧 Sessions**: Flask session integration with collection-based token storage
+- **🔐 Authentication**: JWT-based authentication with session management, OAuth integration (Google, Facebook), and OTP verification
+- **🗄️ Storage**: MongoDB CRUD operations with aggregation pipeline support and safe query handling
+- **📁 Archive**: Secure file upload, download, deletion, and metadata tracking with file type detection
+- **💳 Payments**: Stripe Checkout integration with support for one-time and subscription payments
+- **🧠 AI Generation**: Google Gemini integration for text generation, file uploads, and multimodal content
+- **🛡️ Security**: API key protection, user authentication decorators, input validation, and secure error handling
+- **🏗️ Microservices**: Modular blueprint architecture with consistent patterns across services
+- **⚡ Production Ready**: Waitress WSGI server support with environment-driven configuration
+- **🔧 Utilities**: Password hashing, JWT token management, colored terminal output, and token counting
 
 ## 📋 Table of Contents
 
@@ -29,7 +29,7 @@ Coglex is a comprehensive, production-ready Flask microservices backend designed
 - [Configuration](#configuration)
 - [Authentication & Protection](#authentication--protection)
 - [API Documentation](#api-documentation)
-- [Advanced Features](#advanced-features)
+- [Utility Functions](#utility-functions)
 - [Security Features](#security-features)
 - [Development](#development)
 - [Deployment](#deployment)
@@ -45,6 +45,8 @@ coglex/
 ├── utils.py                        # Utility functions (JWT, password hashing, colored output)
 ├── requirements.txt                # Python dependencies
 ├── .env.example                    # Environment variables template
+├── .gitignore                      # Git ignore patterns
+├── .pylintrc                       # Pylint configuration
 ├── coglex/
 │   ├── __init__.py                 # Flask app initialization and decorators
 │   ├── services/
@@ -61,9 +63,11 @@ coglex/
 │   │   │   ├── routes.py           # Stripe payment endpoints
 │   │   │   └── utils.py            # Payment processing utilities
 │   │   └── generation/
-│   │       ├── routes.py           # Google Gemini endpoints (file & converse)
-│   │       └── utils.py            # Gemini utilities (_file, _converse)
-│   ├── static/                     # Static files and assets
+│   │       ├── routes.py           # Google Gemini endpoints
+│   │       └── utils.py            # Gemini utilities
+│   ├── gateway/                    # Gateway modules (placeholder for future expansion)
+│   ├── static/
+│   │   └── documents/              # File upload directory
 │   └── templates/                  # Jinja2 templates
 ```
 
@@ -130,43 +134,316 @@ STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key
 
 # Google Gemini Configuration
 GENERATION_KEY=your-google-ai-api-key
+
+# OAuth Configuration (Optional)
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+FACEBOOK_CLIENT_ID=your-facebook-client-id
+FACEBOOK_CLIENT_SECRET=your-facebook-client-secret
 ```
-
-### Server Configuration
-
-The application supports both development and production modes:
-
-- **Development**: Set `SERVER_DEBUG = True` in `config.py`
-- **Production**: Set `SERVER_DEBUG = False` for Waitress WSGI server
 
 ### Application Configuration (config.py)
 
-- `BASE_URL`: Base server URL (default `http://127.0.0.1:5000`)
-- `UPLOAD_FOLDER`: File uploads directory (`coglex/static/documents`)
-- `MAX_CONTENT_LENGTH`: Max upload size (default 16 MB)
-- `SEND_FILE_MAX_AGE_DEFAULT`: Static file cache TTL
-- `MONGODB_DATABASE`: Default database name (default `coglex`)
-- `MONGODB_AUTH_COLLECTION`: Auth users collection (default `_USERS`)
-- `MONGODB_ARCHIVE_COLLECTION`: Files collection (default `_ARCHIVE`)
-- `STRIPE_SECRET_KEY` / `STRIPE_PUBLISHABLE_KEY`: Stripe keys
-- `GENERATION_MODEL`: Default Gemini model (`models/gemini-2.5-flash`)
-- `GENERATION_KEY`: Gemini API key (from env)
+Key configuration parameters:
 
-## Authentication & Protection
+- **Server Settings**:
+  - `BASE_URL`: Base server URL (default: `http://127.0.0.1:5000`)
+  - `SERVER_HOST`: Server host (default: `0.0.0.0`)
+  - `SERVER_PORT`: Server port (default: `5000`)
+  - `SERVER_DEBUG`: Development mode flag
 
-- Include `X-API-Key: <SERVER_SECRET>` on all protected endpoints
-- For user-authenticated endpoints, include `Authorization: Bearer <jwt_token>` or rely on server-side session
-- Decorators available:
-  - `@protected(secret: str | None = None)`: Verifies `X-API-Key` (uses `SERVER_SECRET` by default)
-  - `@authenticated(collection: str = config.MONGODB_AUTH_COLLECTION)`: Validates user session or JWT and provides `g.authentication`
+- **File Upload Settings**:
+  - `MAX_CONTENT_LENGTH`: Max upload size (16 MB)
+  - `APP_UPLOAD`: Upload directory (`coglex/static/documents`)
+  - `SEND_FILE_MAX_AGE_DEFAULT`: Static file cache TTL
+
+- **Database Settings**:
+  - `MONGODB_DATABASE`: Database name (default: `coglex`)
+  - `MONGODB_AUTH_COLLECTION`: Users collection (default: `_USERS`)
+  - `MONGODB_ARCHIVE_COLLECTION`: Files collection (default: `_ARCHIVE`)
+
+- **AI Generation Settings**:
+  - `GENERATION_MODEL`: Default Gemini model (`models/gemini-2.5-flash`)
+  - `GENERATION_KEY`: Gemini API key
+
+- **Authentication Settings**:
+  - `VERIFICATION_LENGTH`: OTP length (6 digits)
+  - `VERIFICATION_EXPIRY`: OTP expiry time (10 minutes)
+  - `SERVER_SESSION_LIFETIME`: Session duration (8 days)
+
+## 🔐 Authentication & Protection
+
+The framework provides two main decorators for endpoint protection:
+
+### @protected Decorator
+Verifies API key authentication:
+```python
+@protected(secret: str = config.SERVER_SECRET)
+```
+- Requires `X-API-Key` header with server secret
+- Optional custom secret parameter
+
+### @authenticated Decorator
+Validates user session or JWT token:
+```python
+@authenticated(collection: str = config.MONGODB_AUTH_COLLECTION)
+```
+- Checks for JWT token in Authorization header or session
+- Provides `g.authentication` with user data
+- Optional custom collection parameter
+
+### Usage Example
+```python
+@app.route('/protected-endpoint')
+@protected()
+@authenticated()
+def secure_endpoint():
+    user_data = g.authentication
+    return {"message": "Access granted", "user": user_data}
+```
 
 ## 📚 API Documentation
 
 All endpoints require the `X-API-Key` header with your server secret key.
 
-### Generation Service (`/service/generation/v1/`)
+### Authentication Service (`/service/auth/v1/`)
+
+#### User Registration
+```http
+POST /service/auth/v1/signup
+Content-Type: application/json
+X-API-Key: your-server-secret
+
+{
+  "_key": "user@example.com",
+  "_password": "secure_password",
+  "document": {
+    "name": "John Doe",
+    "role": "user",
+    "active": true
+  }
+}
+```
+
+#### User Authentication
+```http
+POST /service/auth/v1/signin
+Content-Type: application/json
+X-API-Key: your-server-secret
+
+{
+  "_key": "user@example.com",
+  "_password": "secure_password",
+  "query": {
+    "active": true
+  }
+}
+```
+
+#### User Profile Retrieval
+```http
+GET /service/auth/v1/{user_key}
+X-API-Key: your-server-secret
+Authorization: Bearer jwt-token
+```
+
+#### User Profile Update
+```http
+PATCH /service/auth/v1/{user_key}
+Content-Type: application/json
+X-API-Key: your-server-secret
+Authorization: Bearer jwt-token
+
+{
+  "document": {
+    "$set": {
+      "name": "Updated Name"
+    }
+  }
+}
+```
+
+#### OAuth Authentication
+```http
+POST /service/auth/v1/oauth
+Content-Type: application/json
+X-API-Key: your-server-secret
+
+{
+  "provider": "google",
+  "code": "authorization_code",
+  "redirect_uri": "http://localhost:3000/callback"
+}
+```
+
+#### OTP Generation
+```http
+POST /service/auth/v1/passgen
+Content-Type: application/json
+X-API-Key: your-server-secret
+
+{
+  "_key": "user@example.com"
+}
+```
+
+#### OTP Verification
+```http
+POST /service/auth/v1/passver
+Content-Type: application/json
+X-API-Key: your-server-secret
+
+{
+  "_key": "user@example.com",
+  "_password": "123456"
+}
+```
+
+### Storage Service (`/service/storage/v1/`)
+
+#### Find Documents
+```http
+GET /service/storage/v1/{collection}?query={}&projection={}&sort={}&limit=10&skip=0
+X-API-Key: your-server-secret
+Authorization: Bearer jwt-token
+```
+
+#### Find Single Document
+```http
+GET /service/storage/v1/{collection}/{document_id}
+X-API-Key: your-server-secret
+Authorization: Bearer jwt-token
+```
+
+#### Insert Document
+```http
+POST /service/storage/v1/{collection}
+Content-Type: application/json
+X-API-Key: your-server-secret
+Authorization: Bearer jwt-token
+
+{
+  "document": {
+    "name": "Sample Document",
+    "content": "Document content"
+  }
+}
+```
+
+#### Update Document
+```http
+PATCH /service/storage/v1/{collection}/{document_id}
+Content-Type: application/json
+X-API-Key: your-server-secret
+Authorization: Bearer jwt-token
+
+{
+  "document": {
+    "$set": {
+      "name": "Updated Document"
+    }
+  }
+}
+```
+
+#### Delete Document
+```http
+DELETE /service/storage/v1/{collection}/{document_id}
+X-API-Key: your-server-secret
+Authorization: Bearer jwt-token
+```
+
+#### Aggregation Pipeline
+```http
+POST /service/storage/v1/{collection}/aggregate
+Content-Type: application/json
+X-API-Key: your-server-secret
+Authorization: Bearer jwt-token
+
+{
+  "pipeline": [
+    {"$match": {"status": "active"}},
+    {"$group": {"_id": "$category", "count": {"$sum": 1}}}
+  ]
+}
+```
+
+### Archive Service (`/service/archive/v1/`)
+
+#### List Files
+```http
+GET /service/archive/v1/list
+X-API-Key: your-server-secret
+Authorization: Bearer jwt-token
+```
 
 #### Upload File
+```http
+POST /service/archive/v1/upload
+Content-Type: multipart/form-data
+X-API-Key: your-server-secret
+Authorization: Bearer jwt-token
+
+file: [binary file data]
+```
+
+#### Download File
+```http
+GET /service/archive/v1/download/{file_id}
+X-API-Key: your-server-secret
+Authorization: Bearer jwt-token
+```
+
+#### Delete File
+```http
+DELETE /service/archive/v1/destroy/{file_id}
+X-API-Key: your-server-secret
+Authorization: Bearer jwt-token
+```
+
+### Payment Service (`/service/payment/v1/`)
+
+#### Create Checkout Session
+```http
+POST /service/payment/v1/checkout
+Content-Type: application/json
+X-API-Key: your-server-secret
+
+{
+  "mode": "payment",
+  "success_url": "https://example.com/success",
+  "cancel_url": "https://example.com/cancel",
+  "customer_email": "customer@example.com",
+  "line_items": [
+    {
+      "price_data": {
+        "currency": "usd",
+        "product_data": {
+          "name": "Product Name"
+        },
+        "unit_amount": 2000
+      },
+      "quantity": 1
+    }
+  ]
+}
+```
+
+#### Webhook Verification
+```http
+POST /service/payment/v1/verify
+Content-Type: application/json
+X-API-Key: your-server-secret
+
+{
+  "payload": "webhook_payload",
+  "signature": "stripe_signature"
+}
+```
+
+### Generation Service (`/service/generation/v1/`)
+
+#### Upload File for AI Processing
 ```http
 POST /service/generation/v1/file
 Content-Type: multipart/form-data
@@ -186,7 +463,7 @@ Response:
 }
 ```
 
-#### Converse (Generate Content)
+#### Generate Content (Converse)
 ```http
 POST /service/generation/v1/converse
 Content-Type: application/json
@@ -226,360 +503,66 @@ Response:
 ]
 ```
 
-Notes:
-- `contents` must follow Gemini content JSON format: each item is `{ role, parts }`, where `parts` may contain `{ text }`, `{ file_data }`, `{ function_call }`, or `{ function_response }` objects.
-- If `model` or `key` are omitted, defaults from `config.py` are used.
+## 🛠️ Utility Functions
 
-### Authentication Service (`/service/auth/v1/`)
+The framework includes several utility functions in `utils.py`:
 
-#### User Registration
-```http
-POST /service/auth/v1/signup
-Content-Type: application/json
-X-API-Key: your-server-secret
-
-{
-  "_key": "user@example.com",
-  "_password": "secure_password",
-  "document": {
-    "name": "John Doe",
-    "role": "user"
-  }
-}
-```
-
-#### User Authentication
-```http
-POST /service/auth/v1/signin
-Content-Type: application/json
-X-API-Key: your-server-secret
-
-{
-  "_key": "user@example.com",
-  "_password": "secure_password",
-  "query": {
-    "active": true
-  }
-}
-```
-
-#### User Profile Retrieval
-```http
-GET /service/auth/v1/{user_key}
-X-API-Key: your-server-secret
-```
-
-#### User Profile Update
-```http
-PATCH /service/auth/v1/{user_key}
-Content-Type: application/json
-X-API-Key: your-server-secret
-
-{
-  "document": {
-    "$set": {
-      "name": "Updated Name"
-    }
-  }
-}
-```
-
-#### User Signout
-```http
-GET /service/auth/v1/signout
-X-API-Key: your-server-secret
-```
-
-### Storage Service (`/service/storage/v1/`)
-
-#### Find Documents
-```http
-GET /service/storage/v1/{collection}
-X-API-Key: your-server-secret
-```
-
-#### Find Single Document
-```http
-GET /service/storage/v1/{collection}/{document_id}
-X-API-Key: your-server-secret
-```
-
-#### Insert Documents
-```http
-POST /service/storage/v1/{collection}
-Content-Type: application/json
-X-API-Key: your-server-secret
-
-{
-  "documents": [
-    {
-      "title": "Document Title",
-      "content": "Document content"
-    }
-  ]
-}
-```
-
-#### Update Documents
-```http
-PATCH /service/storage/v1/{collection}/{document_id}
-Content-Type: application/json
-X-API-Key: your-server-secret
-
-{
-  "document": {
-    "$set": {
-      "title": "Updated Title"
-    }
-  }
-}
-```
-
-#### Delete Documents
-```http
-DELETE /service/storage/v1/{collection}/{document_id}
-X-API-Key: your-server-secret
-```
-
-#### Aggregation Pipeline
-```http
-POST /service/storage/v1/{collection}/aggregate
-Content-Type: application/json
-X-API-Key: your-server-secret
-
-{
-  "pipeline": [
-    {"$match": {"status": "active"}},
-    {"$group": {"_id": "$category", "count": {"$sum": 1}}}
-  ]
-}
-```
-
-### Archive Service (`/service/archive/v1/`)
-
-#### List Files
-```http
-GET /service/archive/v1/
-X-API-Key: your-server-secret
-```
-
-#### Upload File
-```http
-POST /service/archive/v1/
-Content-Type: multipart/form-data
-X-API-Key: your-server-secret
-
-file: [binary file data]
-```
-
-#### Download File
-```http
-GET /service/archive/v1/{file_id}
-X-API-Key: your-server-secret
-```
-
-#### Delete File
-```http
-DELETE /service/archive/v1/{file_id}
-X-API-Key: your-server-secret
-```
-
-### Payment Service (`/service/payment/v1/`)
-
-#### Create Checkout Session
-```http
-POST /service/payment/v1/checkout
-Content-Type: application/json
-X-API-Key: your-server-secret
-
-{
-  "mode": "payment",
-  "success_url": "https://example.com/success",
-  "cancel_url": "https://example.com/cancel",
-  "email": "customer@example.com",
-  "linedata": [
-    {
-      "price_data": {
-        "currency": "usd",
-        "product_data": {
-          "name": "Product Name"
-        },
-        "unit_amount": 2000
-      },
-      "quantity": 1
-    }
-  ],
-  "metadata": {
-    "order_id": "12345"
-  }
-}
-```
-
-## 🔥 Advanced Features
-
-### Session Management
-
-Coglex provides built-in Flask session integration for token storage:
-
+### Password Management
 ```python
-# Check if user session exists for a specific collection
-if session.get(config.MONGODB_AUTH_COLLECTION):
-    # User has an active session
-    token = session.get(config.MONGODB_AUTH_COLLECTION)
+from utils import phash, pcheck
+
+# Hash a password
+hashed = phash("my_password")
+
+# Verify a password
+is_valid = pcheck("my_password", hashed)
 ```
 
-### Authentication Context
-
-Access the authenticated user model in any protected route:
-
+### JWT Token Management
 ```python
-from flask import g
-from coglex import authenticated
+from utils import jwtenc, jwtdec
+from datetime import datetime, timedelta
 
-@app.route('/protected-route')
-@authenticated()
-def protected_route():
-    # Access current authenticated user
-    current_user = g.authentication
-    return jsonify({
-        'user_id': current_user['_id'],
-        'user_key': current_user['_key']
-    })
+# Encode JWT token
+token = jwtenc({"user_id": "123"}, datetime.now() + timedelta(hours=1))
+
+# Decode JWT token
+payload = jwtdec(token)
 ```
 
-### Token-Based Authentication
-
-The framework supports both header-based and session-based authentication:
-
-1. Include `Authorization: Bearer <token>` for user-authenticated routes
-2. Session tokens can be used when available; header takes precedence
-
-### Custom Decorators
-
-#### `@protected()` Decorator
-Protects routes with API key authentication:
-
+### Colored Terminal Output
 ```python
-from coglex import protected
+from utils import sprint
 
-@app.route('/api/endpoint')
-@protected()  # Uses default server secret
-def secure_endpoint():
-    return jsonify({'message': 'Secure data'})
-
-@app.route('/api/custom')
-@protected(secret='custom-secret')  # Custom secret
-def custom_secure_endpoint():
-    return jsonify({'message': 'Custom secure data'})
+# Print colored text
+sprint("RED", "Error message")
+sprint("GREEN", "Success message")
+sprint("BLUE", "Info message")
 ```
 
-#### `@authenticated()` Decorator
-Protects routes with user authentication:
-
+### Token Counting for AI
 ```python
-from coglex import authenticated
+from utils import tokenize
 
-@app.route('/user/profile')
-@authenticated()  # Uses default auth collection
-def user_profile():
-    user = g.authentication
-    return jsonify(user)
-
-@app.route('/admin/panel')
-@authenticated(collection='_ADMINS')  # Custom collection
-def admin_panel():
-    admin = g.authentication
-    return jsonify(admin)
+# Count tokens for Gemini API
+token_count = tokenize(["Hello world", "How are you?"])
 ```
 
-### Database Operations
+## 🔒 Security Features
 
-#### Advanced Queries with Filters
-```python
-from coglex.services.storage.utils import _find
+- **API Key Protection**: All endpoints protected with server secret
+- **JWT Authentication**: Secure token-based user authentication
+- **Password Hashing**: bcrypt with salt for password security
+- **Input Validation**: Comprehensive request validation
+- **File Type Detection**: Secure file upload with type verification
+- **Session Management**: Flask session integration with MongoDB
+- **OAuth Integration**: Secure third-party authentication
+- **CORS Support**: Configurable cross-origin resource sharing
+- **Error Handling**: Secure error responses without sensitive data exposure
 
-# Find with complex query
-users = _find('_USERS', {
-    'active': True,
-    'role': {'$in': ['admin', 'moderator']},
-    'created_at': {'$gte': datetime(2024, 1, 1)}
-})
-
-# Find with field projection
-users = _find('_USERS', {'active': True}, {'password': 0, 'secret': 0})
-```
-
-#### Aggregation Pipelines
-```python
-from coglex.services.storage.utils import _aggregate
-
-# Complex aggregation
-pipeline = [
-    {'$match': {'status': 'active'}},
-    {'$group': {
-        '_id': '$department',
-        'count': {'$sum': 1},
-        'avg_salary': {'$avg': '$salary'}
-    }},
-    {'$sort': {'count': -1}}
-]
-
-results = _aggregate('employees', pipeline)
-```
-
-### File Management
-
-#### Secure File Upload with Validation
-```python
-from coglex.services.archive.utils import _upload
-from werkzeug.datastructures import FileStorage
-
-# File upload with automatic security checks
-file_id = _upload(file_object)  # Returns file ID or None if invalid
-```
-
-#### File Metadata Tracking
-All uploaded files include comprehensive metadata:
-- Original filename (secured)
-- File path on server
-- File size in bytes
-- MIME type detection
-- Upload timestamp
-
-## 🛡️ Security Features
-
-### Authentication & Authorization
-- **JWT Token Security**: HS256 algorithm with configurable expiration
-- **Password Hashing**: bcrypt with automatic salt generation
-- **Session Management**: Secure Flask session integration
-- **Multi-level Authentication**: API key + user authentication
-
-### Data Protection
-- **Input Sanitization**: Secure filename handling for uploads
-- **Query Injection Prevention**: Parameterized MongoDB queries
-- **File Type Validation**: MIME type detection and validation
-- **Size Limits**: Configurable file upload size restrictions
-
-### API Security
-- **Rate Limiting Ready**: Framework supports rate limiting implementation
-- **CORS Configuration**: Configurable cross-origin resource sharing
-- **Header Validation**: Required API key validation on all endpoints
-- **Error Handling**: Secure error responses without information leakage
-
-### Payment Security
-- **PCI Compliance**: Stripe integration for secure payment processing
-- **Webhook Verification**: Signature validation for Stripe webhooks
-- **Metadata Encryption**: Secure handling of payment metadata
-
-### AI Generation Security
-- **Key Isolation**: Gemini API key is loaded from environment and never logged
-- **Input Validation**: `contents` must be well-formed; invalid requests return 400
-- **Error Handling**: Upstream Gemini errors returned as 500 with safe messages
-
-## 🔧 Development
+## 🚀 Development
 
 ### Running in Development Mode
-
 ```bash
 # Set debug mode in config.py
 SERVER_DEBUG = True
@@ -589,68 +572,63 @@ python run.py
 ```
 
 ### Code Quality
+The project includes:
+- **Pylint configuration** (`.pylintrc`) with custom rules
+- **Git ignore patterns** (`.gitignore`) for Python projects
+- **Environment template** (`.env.example`) for easy setup
 
-```bash
-# Install linting tools
-pip install pylint black
-
-# Format code
-black .
-
-# Lint code
-pylint coglex/
-```
+### Adding New Services
+1. Create service directory in `coglex/services/`
+2. Add `routes.py` with Flask Blueprint
+3. Add `utils.py` with service logic
+4. Register blueprint in `coglex/__init__.py`
 
 ## 🚀 Deployment
 
 ### Production Deployment
+```bash
+# Set production mode in config.py
+SERVER_DEBUG = False
 
-1. **Set production configuration:**
-   ```python
-   # In config.py
-   SERVER_DEBUG = False
-   ```
+# Run with Waitress WSGI server
+python run.py
+```
 
-2. **Use environment variables:**
-   ```bash
-   export SERVER_SECRET="your-production-secret"
-   export MONGODB_URI="mongodb://production-server:27017/coglex"
-   ```
+### Environment Setup
+1. Set all required environment variables
+2. Configure MongoDB connection
+3. Set up SMTP server for emails
+4. Configure Stripe webhooks
+5. Set up Google AI API access
 
-3. **Run with Waitress:**
-   ```bash
-   python run.py
-   ```
-
-### Docker Deployment
-
+### Docker Deployment (Optional)
 ```dockerfile
 FROM python:3.8-slim
-
 WORKDIR /app
 COPY requirements.txt .
 RUN pip install -r requirements.txt
-
 COPY . .
 EXPOSE 5000
-
 CMD ["python", "run.py"]
 ```
 
-### Nginx Configuration
+## 📋 Dependencies
 
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
+### Core Dependencies
+- **Flask 3.1.2**: Web framework
+- **PyMongo 4.15.3**: MongoDB driver
+- **Stripe 13.0.1**: Payment processing
+- **google-genai 1.43.0**: Google Gemini AI
+- **PyJWT 2.10.1**: JWT token handling
+- **bcrypt 5.0.0**: Password hashing
+- **Waitress 3.0.2**: WSGI server
 
-    location / {
-        proxy_pass http://127.0.0.1:5000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-}
-```
+### Additional Dependencies
+- **python-dotenv**: Environment variable management
+- **python-magic**: File type detection
+- **colorama**: Terminal colored output
+- **requests**: HTTP client library
+- **Werkzeug**: WSGI utilities
 
 ## 🤝 Contributing
 
