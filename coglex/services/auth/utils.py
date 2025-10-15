@@ -220,46 +220,43 @@ def _passver(passcode: str, token: str) -> bool:
         raise ex
 
 
-def _oauth(provider: str, redirect_uri: str) -> str | None:
+def _oauth(provider: str, redirect_uri: str, expiry: timedelta = config.OAUTH_EXPIRY) -> str | None:
     """
     generates oauth authorization url for the specified provider
 
     args:
         provider (str): oauth provider name (google, facebook)
         redirect_uri (str): callback url for oauth flow
+        expiry (timedelta): expiry time for the oauth state token
 
     returns:
         str | None: authorization url if provider is valid, None otherwise
     """
-    try:
-        # validate provider
-        if provider not in config.OAUTH_CONFIG:
-            return None
+    # validate provider
+    cfg = config.OAUTH_CONFIG.get(provider)
 
-        # generate jwt-based state for csrf protection if not provided
-        state = jwtenc({
-            "provider": provider,
-            "redirect_uri": redirect_uri,
-            "nonce": secrets.token_urlsafe(16)
-        })
+    # validate provider configuration
+    if not cfg:
+        return None
 
-        # get provider configuration
-        provider_config = config.OAUTH_CONFIG[provider]
+    # generate jwt-based state for csrf protection
+    state = jwtenc({
+        "provider": provider,
+        "redirect_uri": redirect_uri,
+        "nonce": secrets.token_urlsafe(16)
+    }, expiry)
 
-        # build authorization parameters
-        params = {
-            "client_id": provider_config["CLIENT_ID"],
-            "redirect_uri": redirect_uri,
-            "scope": provider_config["SCOPES"],
-            "response_type": "code",
-            "state": state
-        }
+    # build authorization parameters
+    params = {
+        "client_id": cfg["CLIENT_ID"],
+        "redirect_uri": redirect_uri,
+        "scope": cfg["SCOPES"],
+        "response_type": "code",
+        "state": state
+    }
 
-        # return authorization url
-        return f"{provider_config['AUTHORIZE_URL']}?{urlencode(params)}"
-    except Exception as ex:
-        # rethrow exception
-        raise ex
+    # build authorization url
+    return f"{cfg['AUTHORIZE_URL']}?{urlencode(params)}"
 
 
 def _ocall(code: str, state: str) -> dict | None:
@@ -274,59 +271,58 @@ def _ocall(code: str, state: str) -> dict | None:
     returns:
         dict | None: user information dictionary with normalized fields (name, email, provider), None if verification fails
     """
-    try:
-        # decode and verify jwt state for csrf protection
-        state = jwtdec(state)
+    # decode and verify jwt state for csrf protection
+    state = jwtdec(state)
 
-        # verify state payload contains required fields and nonce
-        if not state or not state.get("provider") or not state.get("redirect_uri") or not state.get("nonce"):
-            return None
+    # verify state payload contains required fields and nonce
+    if not state or not all(k in state for k in ("provider", "redirect_uri", "nonce")):
+        return None
 
-        # validate provider
-        if state.get("provider") not in config.OAUTH_CONFIG:
-            return None
+    # validate provider configuration
+    cfg = config.OAUTH_CONFIG.get(state["provider"])
 
-        # get provider configuration
-        provider_config = config.OAUTH_CONFIG[state.get("provider")]
+    # verify provider configuration exists
+    if not cfg:
+        return None
 
-        # exchange code for access token
-        token_data = {
+    # verify redirect uri matches
+    if state["redirect_uri"] != cfg["REDIRECT_URI"]:
+        return None
+
+    # exchange authorization code for access token
+    token_resp = requests.post(
+        cfg["TOKEN_URL"],
+        data={
             "code": code,
-            "client_id": provider_config["CLIENT_ID"],
-            "client_secret": provider_config["CLIENT_SECRET"],
-            "redirect_uri": state.get("redirect_uri"),
+            "client_id": cfg["CLIENT_ID"],
+            "client_secret": cfg["CLIENT_SECRET"],
+            "redirect_uri": state["redirect_uri"],
             "grant_type": "authorization_code"
-        }
+        },
+        timeout=12
+    ).json()
 
-        # request access token
-        token_response = requests.post(provider_config["TOKEN_URL"], data=token_data, headers={}, timeout=12)
-        token_json = token_response.json()
-        access_token = token_json.get("access_token")
+    # return access token
+    access_token = token_resp.get("access_token")
 
-        # check for access token
-        if not access_token:
-            return None
+    # verify access token exists in response
+    if not access_token:
+        return None
 
-        # get user info using access token
-        user_response = requests.get(provider_config["USERINFO_URL"], headers={"Authorization": f"Bearer {access_token}"}, timeout=12)
-        user_info = user_response.json()
+    # retrieve user information using access token
+    user_resp = requests.get(
+        cfg["INFO_URL"],
+        headers={"Authorization": f"Bearer {access_token}"},
+        timeout=12
+    ).json()
 
-        # check for user info
-        if not user_info:
-            return None
-
-        # normalize user data (different providers return different fields)
-        normalized_user = {
-            "name": user_info.get("name") or user_info.get("login") or "User",
-            "email": user_info.get("email") or "No email provided",
-            "provider": state.get("provider"),
-            "provider_id": str(user_info.get("id", ""))
-        }
-
-        return normalized_user
-    except Exception as ex:
-        # rethrow exception
-        raise ex
+    # normalize user information fields
+    return {
+        "name": user_resp.get("name") or user_resp.get("login") or "User",
+        "email": user_resp.get("email") or "No email provided",
+        "provider": state["provider"],
+        "provider_id": str(user_resp.get("id", ""))
+    } if user_resp else None
 
 
 def _signout(collection: str = config.MONGODB_AUTH_COLLECTION) -> bool:

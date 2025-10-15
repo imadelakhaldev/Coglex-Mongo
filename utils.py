@@ -6,7 +6,7 @@ this module provides common utility functions and helper methods that are used a
 
 # standard imports
 from typing import Any
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # pip install colorama
 # cross-platform terminal colored inputs
@@ -70,13 +70,13 @@ def pcheck(password: str, hashed: str) -> bool:
     return bcrypt.checkpw(password.encode("utf-8"), hashed.encode("utf-8"))
 
 
-def jwtenc(content: Any, expiration: datetime = None, key: str = config.SERVER_SECRET) -> str:
+def jwtenc(content: Any, expiration: timedelta = None, key: str = config.SERVER_SECRET) -> str:
     """
     generate a jwt (json web token) for user authentication
 
     args:
         content (any): any data to be encoded in the token
-        expiration (datetime) (optional): token expiration timestamp, defaults to none (no expiration)
+        expiration (timedelta) (optional): token expiration duration, defaults to none (no expiration)
         key (str): secret key used for token encoding
 
     returns:
@@ -87,7 +87,7 @@ def jwtenc(content: Any, expiration: datetime = None, key: str = config.SERVER_S
 
     # add expiration timestamp if provided, if not no expiration will be set
     if expiration:
-        payload["exp"] = expiration
+        payload["exp"] = datetime.now() + expiration
 
     # generate and return jwt token
     return jwt.encode(payload, key, algorithm="HS256")

@@ -65,6 +65,7 @@ VERIFICATION_LENGTH = 6
 VERIFICATION_EXPIRY = timedelta(minutes=10)
 
 # oauth provider configurations
+OAUTH_EXPIRY = timedelta(minutes=10)
 OAUTH_CONFIG = {
     "google": {
         "CLIENT_ID": os.environ.get("GOOGLE_CLIENT_ID"),
