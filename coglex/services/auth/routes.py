@@ -23,7 +23,7 @@ import config
 from coglex import protected
 
 # importing blueprint utilities used in current routing context
-from coglex.services.auth.utils import _signup, _signin, _retrieve, _refresh, _signout
+from coglex.services.auth.utils import _signup, _signin, _retrieve, _refresh
 
 
 # blueprint instance
@@ -169,17 +169,3 @@ def refresh(_key: str):
 
     # returning results
     return jsonify(req), 200
-
-
-@_auth.route("/service/auth/v1/signout/", methods=["GET"])
-@_auth.route("/service/auth/v1/signout", methods=["GET"])
-@protected()
-def signout():
-    """
-    this endpoint clears the session token stored on the server side,
-    effectively logging the user out
-
-    returns success confirmation on successful invalidation
-    """
-    # returning success confirmation
-    return jsonify(_signout()), 200

@@ -9,13 +9,8 @@ and otp verification utilizing mongodb client for user management
 import secrets
 from datetime import timedelta
 
-# url parsing and encoding utilities
+# request encoding utilities
 from urllib.parse import urlencode
-
-# flask built-in session module
-from flask import session
-
-# third-party imports for oauth
 import requests
 
 # mongodb storage module
@@ -75,13 +70,8 @@ def _signin(_key: str, _password: str = None, query: dict = {}, collection: str 
         # find user without password in query
         authentication = _find(collection, {"_key": _key, **query})
 
-        # if no user found, return none
-        if not authentication:
-            return None
-
-        # ensure "user" is a single dictionary, not a list
-        if isinstance(authentication, list):
-            # this shouldn't happen if _key is unique, but good to handle
+        # if no user found or multiple users found (shouldn't happen with unique _key)
+        if not authentication or isinstance(authentication, list):
             return None
 
         # verify if password is present
@@ -90,21 +80,13 @@ def _signin(_key: str, _password: str = None, query: dict = {}, collection: str 
             if not pcheck(_password, authentication.get("_password")):
                 return None
 
-        # storing user identifier
-        # storing hashed password (allows us to password change)
-        # storing additonal query (allows us to verify if user is active or not, and other criteria)
-        # generate jwt token for later user authentication
-        token = jwtenc({
+        # generate and return jwt token for later user authentication
+        # nothing is stored server side, stateless approach
+        return jwtenc({
             "_key": _key,
             "_password": authentication.get("_password"),
             **query
         }, config.SERVER_SESSION_LIFETIME)
-
-        # store generated token in session
-        session[collection] = token
-
-        # return generated token
-        return token
     except Exception as ex:
         # rethrow exception
         raise ex
@@ -186,15 +168,11 @@ def _passgen(length: int = config.VERIFICATION_LENGTH, expiry: timedelta = confi
     returns:
         tuple(str, str): tuple containing otp code and jwt token if successful
     """
-    try:
-        # generate random otp code
-        passcode = "".join([str(secrets.randbelow(10)) for _ in range(length)])
+    # generate random otp code
+    passcode = "".join([str(secrets.randbelow(10)) for _ in range(length)])
 
-        # encode passcode jwt with expiry and return actual code and token
-        return (passcode, jwtenc(passcode, expiry))
-    except Exception as ex:
-        # rethrow exception
-        raise ex
+    # encode passcode jwt with expiry and return actual code and token
+    return (passcode, jwtenc(passcode, expiry))
 
 
 def _passver(passcode: str, token: str) -> bool:
@@ -208,139 +186,107 @@ def _passver(passcode: str, token: str) -> bool:
     returns:
         bool: True if otp is valid, False otherwise
     """
-    try:
-        # decode actual passcode from token, and verify it with provided passcode
-        if passcode == jwtdec(token):
-            return True
+    # decode actual passcode from token, and verify it with provided passcode
+    if passcode == jwtdec(token):
+        return True
 
-        # otp is invalid, not equal to tokenized passcode
-        return False
-    except Exception as ex:
-        # rethrow exception
-        raise ex
+    # otp is invalid, not equal to tokenized passcode
+    return False
 
 
-def _oauth(provider: str, redirect_uri: str, expiry: timedelta = config.OAUTH_EXPIRY) -> str | None:
+def _oauth(provider: str, redirect: str) -> str:
     """
     generates oauth authorization url for the specified provider
 
     args:
         provider (str): oauth provider name (google, facebook)
-        redirect_uri (str): callback url for oauth flow
-        expiry (timedelta): expiry time for the oauth state token
+        redirect (str): callback url for oauth flow
 
     returns:
-        str | None: authorization url if provider is valid, None otherwise
+        str: authorization url if provider is valid, None otherwise
     """
     # validate provider
-    cfg = config.OAUTH_CONFIG.get(provider)
+    cfg = config.OAUTH_PROVIDERS.get(provider)
 
     # validate provider configuration
     if not cfg:
         return None
 
-    # generate jwt-based state for csrf protection
-    state = jwtenc({
-        "provider": provider,
-        "redirect_uri": redirect_uri,
-        "nonce": secrets.token_urlsafe(16)
-    }, expiry)
+    # generate state parameter for csrf protection
+    state = secrets.token_urlsafe(16)
 
     # build authorization parameters
     params = {
         "client_id": cfg["CLIENT_ID"],
-        "redirect_uri": redirect_uri,
+        "redirect_uri": redirect,
         "scope": cfg["SCOPES"],
         "response_type": "code",
-        "state": state
+        "state": jwtenc(state, config.OAUTH_EXPIRY)  # store state parameter in token for later verification
     }
 
-    # build authorization url
+    # build and return authorization url
     return f"{cfg['AUTHORIZE_URL']}?{urlencode(params)}"
 
 
-def _ocall(code: str, state: str) -> dict | None:
+def _ocall(provider: str, redirect: str, state: str, code: str) -> dict | None:
     """
     handles oauth callback by exchanging authorization code for access token and retrieving user info
 
     args:
+        provider (str): oauth provider name (google, facebook)
+        redirect (str): callback url used in authorization
+        state (str): state parameter used for csrf protection
         code (str): authorization code from oauth provider
-        state (str): state parameter for csrf verification
-        redirect_uri (str): callback url used in authorization
 
     returns:
-        dict | None: user information dictionary with normalized fields (name, email, provider), None if verification fails
+        dict | None: user information dictionary with normalized fields (name, email, identifier), None if verification fails
     """
-    # decode and verify jwt state for csrf protection
-    state = jwtdec(state)
-
-    # verify state payload contains required fields and nonce
-    if not state or not all(k in state for k in ("provider", "redirect_uri", "nonce")):
-        return None
-
     # validate provider configuration
-    cfg = config.OAUTH_CONFIG.get(state["provider"])
+    cfg = config.OAUTH_PROVIDERS.get(provider)
 
     # verify provider configuration exists
     if not cfg:
         return None
 
-    # verify redirect uri matches
-    if state["redirect_uri"] != cfg["REDIRECT_URI"]:
+    # decode state parameter from token, if it's valid, it's ours
+    if not jwtdec(state):
         return None
 
-    # exchange authorization code for access token
-    token_resp = requests.post(
-        cfg["TOKEN_URL"],
-        data={
-            "code": code,
-            "client_id": cfg["CLIENT_ID"],
-            "client_secret": cfg["CLIENT_SECRET"],
-            "redirect_uri": state["redirect_uri"],
-            "grant_type": "authorization_code"
-        },
-        timeout=12
-    ).json()
+    try:
+        # exchange authorization code for access token
+        access_token = requests.post(
+            cfg["TOKEN_URL"],
+            data={
+                "code": code,
+                "client_id": cfg["CLIENT_ID"],
+                "client_secret": cfg["CLIENT_SECRET"],
+                "redirect_uri": redirect,
+                "grant_type": "authorization_code"
+            },
+            timeout=12
+        ).json().get("access_token")
 
-    # return access token
-    access_token = token_resp.get("access_token")
+        # verify access token exists in response
+        if not access_token:
+            return None
 
-    # verify access token exists in response
-    if not access_token:
-        return None
+        # retrieve user information using access token
+        user_info = requests.get(
+            cfg["INFO_URL"],
+            headers={"Authorization": f"Bearer {access_token}"},
+            timeout=12
+        ).json()
 
-    # retrieve user information using access token
-    user_resp = requests.get(
-        cfg["INFO_URL"],
-        headers={"Authorization": f"Bearer {access_token}"},
-        timeout=12
-    ).json()
+        # verify user information exists in response
+        if not user_info:
+            return None
 
-    # normalize user information fields
-    return {
-        "name": user_resp.get("name") or user_resp.get("login") or "User",
-        "email": user_resp.get("email") or "No email provided",
-        "provider": state["provider"],
-        "provider_id": str(user_resp.get("id", ""))
-    } if user_resp else None
-
-
-def _signout(collection: str = config.MONGODB_AUTH_COLLECTION) -> bool:
-    """
-    signs out the current user by removing the token from the session
-
-    args:
-        collection (str): the name of the collection (used as session key) to remove the token from
-
-    returns:
-        bool: True if the token was successfully removed, False otherwise
-    """
-    # checking if token exists in session
-    if not session.get(collection):
-        return False
-
-    # remove token from collection key if it exists
-    session.pop(collection, None)
-
-    # return success
-    return True
+        # normalize user information fields
+        return {
+            "name": user_info.get("name") or user_info.get("login"),
+            "email": user_info.get("email"),
+            "identifier": str(user_info.get("id", ""))
+        }
+    except Exception as ex:
+        # handle exception, and raise
+        raise ex

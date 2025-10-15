@@ -15,7 +15,7 @@ from functools import wraps
 
 # pip install flask
 # micro server routing, services, templating, and http serving toolkit
-from flask import Flask, request, session, g, abort
+from flask import Flask, request, g, abort
 
 # pip install pymongo
 # initialize mongodb client
@@ -102,22 +102,23 @@ def authenticated(collection: str = config.MONGODB_AUTH_COLLECTION):
             # get token from request headers
             token = request.headers.get("Authorization", "").replace("Bearer ", "")
 
-            # if token is missing from headers, try session
+            # fallback, if token is missing from headers, try session
             if not token:
-                token = session.get(collection)
+                token = request.cookies.get("Authorization")
 
-            # if token is missing from headers and session, return 401
+            # if token is missing from headers and cookies, return 401
+            # headers are checked for api calls, cookies for web / browser requests
             if not token:
                 return abort(401)
 
-            # decode given token and
+            # decode given token and validate payload
             content = jwtdec(token)
 
             # if content is empty or invalid, return 401
-            if not content:
+            if not content or not content.get("_key"):
                 return abort(401)
 
-            # extract user key from content
+            # extract user key from content, leaving the rest of the content params (_password, and additional query params)
             _key = content.pop("_key")
 
             # if user key is missing from content, return 401
