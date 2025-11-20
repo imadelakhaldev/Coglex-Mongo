@@ -90,8 +90,12 @@ STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY")
 STRIPE_PUBLISHABLE_KEY = os.environ.get("STRIPE_PUBLISHABLE_KEY")
 
 # google gemini api configurations
-GENERATION_MODEL = "models/gemini-2.5-flash"
-GENERATION_KEY = os.environ.get("GENERATION_KEY")
+GOOGLE_GENERATION_KEY = os.environ.get("GOOGLE_GENERATION_KEY")
+GOOGLE_GENERATION_MODEL = "models/gemini-2.5-flash"
+
+# groq api configurations
+GROQ_GENERATION_KEY = os.environ.get("GROQ_GENERATION_KEY")
+GROQ_GENERATION_MODEL = "llama-3.1-8b-instant"
 
 
 # custom gateway configurations

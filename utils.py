@@ -110,25 +110,3 @@ def jwtdec(token: str, key: str = config.SERVER_SECRET) -> Any | None:
     except Exception:
         # return none if token is invalid or expired
         return None
-
-
-def tokenize(contents: list[str | types.Content | types.File], model: str = config.GENERATION_MODEL, key: str = config.GENERATION_KEY) -> int:
-    """
-    count the number of tokens in a list of contents using a specified model's tokenizer
-
-    args:
-        contents (list[str | types.Content | types.File]): the input contents to tokenize and count
-        model (str): the name of the model whose tokenizer will be used for counting
-        key (str): google ai api key
-
-    returns:
-        int: the total number of tokens in the contents
-    """
-    try:
-        # configure gemini client
-        client = genai.Client(api_key=key)
-
-        # Count tokens using the client method
-        return client.models.count_tokens(model=model, contents=contents).total_tokens
-    except Exception as ex:
-        raise ex
